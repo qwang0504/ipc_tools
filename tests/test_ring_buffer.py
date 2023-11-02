@@ -265,6 +265,8 @@ def test_shape():
     buffer.put([11,12,13,14,15,16,17,18,19,20])
     buffer.put(np.arange(10))
 
+    # there is an issue here 
+
 
 if __name__ == '__main__':
     test_00()
