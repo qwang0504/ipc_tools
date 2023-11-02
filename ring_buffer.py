@@ -45,6 +45,7 @@ class OverflowRingBuffer_Locked(RingBuffer):
         # account for empty slot
         self.num_items = num_items + 1 
         self.item_num_element = int(np.prod(self.item_shape))
+        self.element_byte_size = self.element_type.itemsize 
         self.total_size =  self.item_num_element * self.num_items
         
         self.lock = RLock()
@@ -65,7 +66,7 @@ class OverflowRingBuffer_Locked(RingBuffer):
                 self.data, 
                 dtype = self.element_type, 
                 count = self.item_num_element,
-                offset = self.read_cursor.value * self.item_num_element 
+                offset = self.read_cursor.value * self.item_num_element * self.element_byte_size # offset should be in bytes
             )
             self.read_cursor.value = (self.read_cursor.value  +  1) % self.num_items
 
@@ -83,7 +84,7 @@ class OverflowRingBuffer_Locked(RingBuffer):
                 self.data, 
                 dtype = self.element_type, 
                 count = self.item_num_element,
-                offset = self.write_cursor.value * self.item_num_element
+                offset = self.write_cursor.value * self.item_num_element * self.element_byte_size # offset should be in bytes
             )
 
             # if the buffer is full, overwrite the next block
