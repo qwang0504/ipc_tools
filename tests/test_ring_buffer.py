@@ -233,6 +233,25 @@ def test_types():
     buffer.put(np.ones(shape=(10,), dtype=np.float32))
     buffer.put(np.ones(shape=(10,), dtype=np.float64))
     buffer.put(np.ones(shape=(10,), dtype=np.int))
+
+    buffer = OverflowRingBuffer_Locked(
+        num_items = 5, 
+        item_shape = (10,),
+        data_type = np.float32
+    )
+
+    buffer = OverflowRingBuffer_Locked(
+        num_items = 5, 
+        item_shape = (10,),
+        data_type = np.uint16
+    )
+
+    buffer = OverflowRingBuffer_Locked(
+        num_items = 5, 
+        item_shape = (10,),
+        data_type = np.float64
+    )
+
     
 def test_shape():
 
