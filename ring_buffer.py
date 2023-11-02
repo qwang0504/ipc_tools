@@ -110,4 +110,16 @@ class OverflowRingBuffer_Locked(RingBuffer):
         ''' Return number of items currently stored in the buffer '''
         return (self.write_cursor.value - self.read_cursor.value) % self.num_items
     
-    
+    def __str__(self):
+        reprstr = (
+            f'capacity: {self.num_items}\n' +
+            f'item shape: {self.item_shape}\n' +
+            f'data type: {self.element_type}\n' +
+            f'size: {self.size()}\n' +
+            f'read cursor position: {self.read_cursor.value}\n' + 
+            f'write cursor position: {self.write_cursor.value}\n' +
+            f'lost item: {self.lost_item.value}\n'
+            f'buffer: {self.data}\n'
+        )
+        return reprstr
+        
