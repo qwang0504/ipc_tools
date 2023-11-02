@@ -1,7 +1,6 @@
 from multiprocessing import RawArray, RawValue, RLock
 from typing import Optional
 import numpy as np
-import ctypes
 from numpy.typing import NDArray, ArrayLike, DTypeLike
 from abc import ABC, abstractmethod
 
@@ -73,8 +72,11 @@ class OverflowRingBuffer_Locked(RingBuffer):
 
         return element.reshape(self.item_shape)
 
-    def put(self, element: NDArray) -> None:
+    def put(self, element: ArrayLike) -> None:
         '''return buffer to the current write location'''
+
+        # convert to numpy array
+        arr_element = np.asarray(element, dtype = self.element_type)
 
         with self.lock:
 
@@ -91,7 +93,7 @@ class OverflowRingBuffer_Locked(RingBuffer):
                 self.lost_item.value += 1
 
             # write flattened array content to buffer
-            buffer[:] = element.ravel()
+            buffer[:] = arr_element.ravel()
 
             # update write cursor value
             self.write_cursor.value = (self.write_cursor.value  +  1) % self.num_items
