@@ -5,25 +5,36 @@ import cv2
 
 from ring_buffer import RingBuffer, OverflowRingBuffer_Locked
 
-SZ = (2048,2048)
+SZ = (1024,1024)
 BIGARRAY = np.random.randint(0, 255, SZ, dtype=np.uint8)
 
 def consumer_cv(ring_buf: RingBuffer, stop: Event, sleep_time: float):
+    start = time.time()
+    count = 0
     while not stop.is_set():
         array = ring_buf.get()
         if array is not None:
+            count += 1
             cv2.imshow('display',array)
             cv2.waitKey(1)
+    elapsed = time.time() - start
     cv2.destroyAllWindows()
+    print((elapsed,count))
 
 def producer_random(ring_buf: RingBuffer, stop: Event, sleep_time: float):
     while not stop.is_set():
         ring_buf.put(np.random.randint(0, 255, SZ, dtype=np.uint8))
 
 def consumer(ring_buf: RingBuffer, stop: Event, sleep_time: float):
+    start = time.time()
+    count = 0
     while not stop.is_set():
         array = ring_buf.get()
         time.sleep(sleep_time)
+        if array is not None:
+            count += 1
+    elapsed = time.time() - start
+    print((elapsed,count))
 
 def producer(ring_buf: RingBuffer, stop: Event, sleep_time: float):
     while not stop.is_set():
@@ -50,7 +61,7 @@ def test_00():
 
     p0 = Process(target=producer,args=(buffer,stop,0.001))
     p1 = Process(target=consumer,args=(buffer,stop,0.001))
-    p2 = Process(target=monitor,args=(buffer,stop,0.001))
+    p2 = Process(target=monitor,args=(buffer,stop,0.1))
 
     p0.start()
     p1.start()
@@ -78,7 +89,7 @@ def test_01():
 
     p0 = Process(target=producer,args=(buffer,stop,0.001))
     p1 = Process(target=consumer,args=(buffer,stop,0.002))
-    p2 = Process(target=monitor,args=(buffer,stop,0.001))
+    p2 = Process(target=monitor,args=(buffer,stop,0.1))
 
     p0.start()
     p1.start()
@@ -106,7 +117,36 @@ def test_02():
 
     p0 = Process(target=producer,args=(buffer,stop,0.002))
     p1 = Process(target=consumer,args=(buffer,stop,0.001))
-    p2 = Process(target=monitor,args=(buffer,stop,0.001))
+    p2 = Process(target=monitor,args=(buffer,stop,0.1))
+
+    p0.start()
+    p1.start()
+    p2.start()
+
+    time.sleep(2)
+    stop.set()
+
+    p0.join()
+    p1.join()
+    p2.join()
+
+
+def test_02bis():
+    # 1 producer 
+    # 1 consumer
+    # AFAP
+
+    buffer = OverflowRingBuffer_Locked(
+        num_items = 100, 
+        item_shape = SZ,
+        data_type = np.uint8
+    )
+
+    stop = Event()
+
+    p0 = Process(target=producer,args=(buffer,stop,0.000000001))
+    p1 = Process(target=consumer,args=(buffer,stop,0.000000001))
+    p2 = Process(target=monitor,args=(buffer,stop,0.1))
 
     p0.start()
     p1.start()
@@ -134,7 +174,7 @@ def test_03():
     p0 = Process(target=producer,args=(buffer,stop,0.001))
     p1 = Process(target=producer,args=(buffer,stop,0.001))
     p2 = Process(target=consumer,args=(buffer,stop,0.001))
-    p3 = Process(target=monitor,args=(buffer,stop,0.001))
+    p3 = Process(target=monitor,args=(buffer,stop,0.1))
 
     p0.start()
     p1.start()
@@ -164,7 +204,7 @@ def test_04():
     p0 = Process(target=producer,args=(buffer,stop,0.001))
     p1 = Process(target=consumer,args=(buffer,stop,0.001))
     p2 = Process(target=consumer,args=(buffer,stop,0.001))
-    p3 = Process(target=monitor,args=(buffer,stop,0.001))
+    p3 = Process(target=monitor,args=(buffer,stop,0.1))
 
     p0.start()
     p1.start()
@@ -194,7 +234,7 @@ def test_05():
 
     p0 = Process(target=producer_random,args=(buffer,stop,0.001))
     p1 = Process(target=consumer_cv,args=(buffer,stop,0.001))
-    p2 = Process(target=monitor,args=(buffer,stop,0.001))
+    p2 = Process(target=monitor,args=(buffer,stop,0.1))
 
     p0.start()
     p1.start()
@@ -269,6 +309,7 @@ if __name__ == '__main__':
     test_00()
     test_01()
     test_02()
+    test_02bis()
     test_03()
     test_04()
     test_05()
