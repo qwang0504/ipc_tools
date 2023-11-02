@@ -118,8 +118,9 @@ class OverflowRingBuffer_Locked(RingBuffer):
             f'size: {self.size()}\n' +
             f'read cursor position: {self.read_cursor.value}\n' + 
             f'write cursor position: {self.write_cursor.value}\n' +
-            f'lost item: {self.lost_item.value}\n'
+            f'lost item: {self.lost_item.value}\n' +
             f'buffer: {self.data}\n'
         )
+
         return reprstr
         
