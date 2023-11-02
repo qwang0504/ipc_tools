@@ -45,15 +45,14 @@ class OverflowRingBuffer_Locked(RingBuffer):
         # account for empty slot
         self.num_items = num_items + 1 
         self.item_num_element = int(np.prod(self.item_shape))
-        self.element_num_bytes = self.element_type.itemsize
-        self.total_byte_size = self.element_num_bytes * self.item_num_element * self.num_items
+        self.total_size =  self.item_num_element * self.num_items
         
         self.lock = RLock()
         self.read_cursor = RawValue('I',0)
         self.write_cursor = RawValue('I',0)
         self.lost_item = RawValue('I',0)
-        self.data = RawArray(self.element_type.char, self.total_byte_size)
-
+        self.data = RawArray(self.element_type.char, self.total_size) 
+        
     def get(self) -> Optional[NDArray]:
         '''return buffer to the current read location'''
 
