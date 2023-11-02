@@ -267,9 +267,9 @@ def test_shape():
 
 
 if __name__ == '__main__':
-    #test_00()
-    #test_01()
-    #test_02()
-    #test_03()
-    #test_04()
+    test_00()
+    test_01()
+    test_02()
+    test_03()
+    test_04()
     test_05()
