@@ -5,6 +5,8 @@ from numpy.typing import NDArray, ArrayLike, DTypeLike
 from abc import ABC, abstractmethod
 import time
 
+# TODO make a buffer that blocks instead of overflowing 
+
 class RingBuffer(ABC):
 
     @abstractmethod
@@ -90,7 +92,6 @@ class OverflowRingBuffer_Locked(RingBuffer):
     
     def put(self, element: ArrayLike) -> None:
         '''return buffer to the current write location'''
-        # TODO make a blocking version with timeout
 
         # convert to numpy array
         arr_element = np.asarray(element, dtype = self.element_type)
