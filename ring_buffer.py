@@ -3,6 +3,7 @@ from typing import Optional
 import numpy as np
 from numpy.typing import NDArray, ArrayLike, DTypeLike
 from abc import ABC, abstractmethod
+import time
 
 #TODO make a version where call to get is blocking ?
 
@@ -38,11 +39,13 @@ class OverflowRingBuffer_Locked(RingBuffer):
             self,
             num_items: int,
             item_shape: ArrayLike,
-            data_type: DTypeLike
+            data_type: DTypeLike,
+            t_refresh: float = 0.001 
         ):
         
         self.item_shape = item_shape
         self.element_type = np.dtype(data_type)
+        self.t_refresh = t_refresh
 
         # account for empty slot
         self.num_items = num_items + 1 
@@ -61,8 +64,11 @@ class OverflowRingBuffer_Locked(RingBuffer):
 
         if blocking:
             array = None
-            while array is None: # maybe sleep a bit ?
+            while array is None: 
                 array = self.get_noblock()
+                if array is None:
+                    time.sleep(self.t_refresh)
+
             return array
         else:
             return self.get_noblock()
