@@ -97,7 +97,7 @@ def test_ring_buffer(processing_fun: Callable, num_consumers: int = 1) -> float:
         proc.append(
             Process(
                 target=consumer_ringbuffer, 
-                args=(buffer, NLOOP, processing_fun, stop_time)
+                args=(buffer, NLOOP//num_consumers, processing_fun, stop_time)
             )
         )
         proc[i].start()
@@ -123,7 +123,7 @@ def test_zmq(processing_fun: Callable, num_consumers: int = 1) -> float:
         proc.append(
             Process(
                 target=consumer_zmq, 
-                args=(NLOOP, processing_fun, stop_time)
+                args=(NLOOP//num_consumers, processing_fun, stop_time)
             )
         )
         proc[i].start()
@@ -147,7 +147,7 @@ def test_queues(processing_fun: Callable, num_consumers: int = 1) -> float:
         proc.append(
             Process(
                 target=consumer_queue, 
-                args=(queue, NLOOP, processing_fun, stop_time)
+                args=(queue, NLOOP//num_consumers, processing_fun, stop_time)
             )
         )
         proc[i].start()
@@ -171,7 +171,7 @@ def average(array):
 
 def long_computation(array):
     array_2D = array.reshape(SHAPE)
-    U,S,V = np.linalg.svd(array_2D[0:256,0:256])
+    U,S,V = np.linalg.svd(array_2D[0:128,0:128])
     
 if __name__ == '__main__':
     #mp.set_start_method('spawn')
