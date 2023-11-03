@@ -42,7 +42,7 @@ class OverflowRingBuffer_Locked(RingBuffer):
             num_items: int,
             item_shape: ArrayLike,
             data_type: DTypeLike,
-            t_refresh: float = 0.001 
+            t_refresh: float = 0.001
         ):
         
         self.item_shape = np.asarray(item_shape)
@@ -61,16 +61,20 @@ class OverflowRingBuffer_Locked(RingBuffer):
         self.lost_item = RawValue('I',0)
         self.data = RawArray(self.element_type.char, self.total_size) 
         
-    def get(self, blocking: bool = False) -> Optional[NDArray]:
+    def get(self, blocking: bool = True, timeout: float = float('inf')) -> Optional[NDArray]:
         '''return buffer to the current read location'''
-        # TODO add a timeout
+
         if blocking:
             array = None
-            while array is None: 
+            deadline = time.monotonic() + timeout
+
+            while array is None and time.monotonic() < deadline: 
                 array = self.get_noblock()
                 if array is None:
                     time.sleep(self.t_refresh)
+
             return array
+        
         else:
             return self.get_noblock()
 
