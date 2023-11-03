@@ -133,8 +133,8 @@ class OverflowRingBuffer_Locked(RingBuffer):
     def clear(self):
         '''clear the buffer'''
         self.write_cursor.value = self.read_cursor.value
-    
-    def __str__(self):
+
+    def view_data(self):
         num_items = self.write_cursor.value - self.read_cursor.value
         num_element_stored = self.item_num_element * num_items
 
@@ -144,6 +144,10 @@ class OverflowRingBuffer_Locked(RingBuffer):
             count = num_element_stored,
             offset = self.read_cursor.value * self.item_num_element * self.element_byte_size # offset should be in bytes
         ).reshape(np.concatenate(((num_items,) , self.item_shape)))
+
+        return stored_data
+    
+    def __str__(self):
         
         reprstr = (
             f'capacity: {self.num_items}\n' +
@@ -154,7 +158,7 @@ class OverflowRingBuffer_Locked(RingBuffer):
             f'write cursor position: {self.write_cursor.value}\n' +
             f'lost item: {self.lost_item.value}\n' +
             f'buffer: {self.data}\n' + 
-            f'{stored_data}\n'
+            f'{self.view_data}\n'
         )
 
         return reprstr
