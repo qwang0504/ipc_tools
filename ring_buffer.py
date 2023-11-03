@@ -4,6 +4,8 @@ import numpy as np
 from numpy.typing import NDArray, ArrayLike, DTypeLike
 from abc import ABC, abstractmethod
 
+#TODO make a version where call to get is blocking ?
+
 class RingBuffer(ABC):
 
     @abstractmethod
@@ -54,7 +56,18 @@ class OverflowRingBuffer_Locked(RingBuffer):
         self.lost_item = RawValue('I',0)
         self.data = RawArray(self.element_type.char, self.total_size) 
         
-    def get(self) -> Optional[NDArray]:
+    def get(self, blocking: bool = False) -> Optional[NDArray]:
+        '''return buffer to the current read location'''
+
+        if blocking:
+            array = None
+            while array is None: # maybe sleep a bit ?
+                array = self.get_noblock()
+            return array
+        else:
+            return self.get_noblock()
+
+    def get_noblock(self) -> Optional[NDArray]:
         '''return buffer to the current read location'''
 
         with self.lock:
@@ -71,7 +84,7 @@ class OverflowRingBuffer_Locked(RingBuffer):
             self.read_cursor.value = (self.read_cursor.value  +  1) % self.num_items
 
         return element.reshape(self.item_shape)
-
+    
     def put(self, element: ArrayLike) -> None:
         '''return buffer to the current write location'''
 
