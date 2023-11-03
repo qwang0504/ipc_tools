@@ -61,14 +61,13 @@ class OverflowRingBuffer_Locked(RingBuffer):
         
     def get(self, blocking: bool = False) -> Optional[NDArray]:
         '''return buffer to the current read location'''
-
+        # TODO add a timeout
         if blocking:
             array = None
             while array is None: 
                 array = self.get_noblock()
                 if array is None:
                     time.sleep(self.t_refresh)
-
             return array
         else:
             return self.get_noblock()
@@ -93,6 +92,7 @@ class OverflowRingBuffer_Locked(RingBuffer):
     
     def put(self, element: ArrayLike) -> None:
         '''return buffer to the current write location'''
+        # TODO make a blocking version with timeout
 
         # convert to numpy array
         arr_element = np.asarray(element, dtype = self.element_type)
