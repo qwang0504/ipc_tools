@@ -31,8 +31,10 @@ class RingBuffer(ABC):
 
 class OverflowRingBuffer_Locked(RingBuffer):
     '''
-    If there is an overflow, unread content will be lost.
-    Only one process can access the buffer at a time.
+    Simple circular buffer implementation, with the following features:
+    - when the buffer is full it will overwrite unread content (overflow)
+    - trying to get item from empty buffer can be either blocking or non blocking (return None)
+    - only one process can access the buffer at a time, writing and reading share the same lock
     '''
 
     def __init__(
