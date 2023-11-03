@@ -33,7 +33,7 @@ class OverflowRingBuffer_Locked(RingBuffer):
     '''
     Simple circular buffer implementation, with the following features:
     - when the buffer is full it will overwrite unread content (overflow)
-    - trying to get item from empty buffer can be either blocking or non blocking (return None)
+    - trying to get item from empty buffer can be either blocking (default) or non blocking (return None)
     - only one process can access the buffer at a time, writing and reading share the same lock
     '''
 
@@ -68,7 +68,7 @@ class OverflowRingBuffer_Locked(RingBuffer):
             array = None
             deadline = time.monotonic() + timeout
 
-            while array is None and time.monotonic() < deadline: 
+            while (array is None) and (time.monotonic() < deadline): 
                 array = self.get_noblock()
                 if array is None:
                     time.sleep(self.t_refresh)
