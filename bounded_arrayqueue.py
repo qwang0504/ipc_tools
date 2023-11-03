@@ -4,7 +4,7 @@ from typing import Optional
 import numpy as np
 from numpy.typing import NDArray, ArrayLike, DTypeLike
 from abc import ABC, abstractmethod
-
+import ctypes
 class BoundedQueue:
 
     def __init__(self, size, maxlen):
