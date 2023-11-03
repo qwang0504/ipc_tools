@@ -163,7 +163,7 @@ def long_computation(array):
     U,S,V = np.linalg.svd(array_2D[0:256,0:256])
     
 if __name__ == '__main__':
-    mp.set_start_method('spawn')
+    #mp.set_start_method('spawn')
     timing_data = pd.DataFrame(columns=['pfun','shm','timing'])
     for processing_fun_name, processing_fun in zip(['pass','avg','svd'],[do_nothing, average, long_computation]):
         print(processing_fun_name)
