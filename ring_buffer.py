@@ -5,8 +5,6 @@ from numpy.typing import NDArray, ArrayLike, DTypeLike
 from abc import ABC, abstractmethod
 import time
 
-#TODO make a version where call to get is blocking ?
-
 class RingBuffer(ABC):
 
     @abstractmethod
