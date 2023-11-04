@@ -183,16 +183,23 @@ class MonitoredRingBuffer(OverflowRingBuffer_Locked):
         super().put(element)
         with self.num_item_in.get_lock():
             self.num_item_in.value += 1
-        self.display()
+        self.display_put()
 
     def get(self, blocking: bool = True, timeout: float = float('inf')) -> Optional[NDArray]:
         res = super().get(blocking, timeout)
         with self.num_item_out.get_lock():
             self.num_item_out.value += 1
-        self.display()        
+        self.display_get()        
 
-    def display(self):
-        '''display buffer status'''
+    def display_get(self):
+
+        if (self.num_item_out.value % self.refresh_every == 0):
+            previous_time = self.time_out.value
+            self.time_out.value = time.monotonic()
+            fps = self.refresh_every/(self.time_out.value - previous_time)
+            print(f'FPS out: {fps}, buffer size: {self.size()}')
+
+    def display_put(self):
         
         if (self.num_item_in.value % self.refresh_every == 0):
             previous_time = self.time_in.value
@@ -201,9 +208,3 @@ class MonitoredRingBuffer(OverflowRingBuffer_Locked):
             print(f'FPS in: {fps}, buffer size: {self.size()}')
 
         
-        if (self.num_item_out.value % self.refresh_every == 0):
-            previous_time = self.time_out.value
-            self.time_out.value = time.monotonic()
-            fps = self.refresh_every/(self.time_out.value - previous_time)
-            print(f'FPS out: {fps}, buffer size: {self.size()}')
-

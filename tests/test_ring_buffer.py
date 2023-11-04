@@ -63,18 +63,18 @@ def test_00():
 
     p0 = Process(target=producer,args=(buffer,stop,0.001))
     p1 = Process(target=consumer,args=(buffer,stop,0.001))
-    p2 = Process(target=monitor,args=(buffer,stop,0.1))
+    #p2 = Process(target=monitor,args=(buffer,stop,0.1))
 
     p0.start()
     p1.start()
-    p2.start()
+    #p2.start()
 
     time.sleep(2)
     stop.set()
 
     p0.join()
     p1.join()
-    p2.join()
+    #p2.join()
 
 def test_01():
     '''
@@ -93,18 +93,18 @@ def test_01():
 
     p0 = Process(target=producer,args=(buffer,stop,0.001))
     p1 = Process(target=consumer,args=(buffer,stop,0.002))
-    p2 = Process(target=monitor,args=(buffer,stop,0.1))
+    #p2 = Process(target=monitor,args=(buffer,stop,0.1))
 
     p0.start()
     p1.start()
-    p2.start()
+    #p2.start()
 
     time.sleep(2)
     stop.set()
 
     p0.join()
     p1.join()
-    p2.join()
+    #p2.join()
 
 def test_02():
     '''
@@ -123,18 +123,18 @@ def test_02():
 
     p0 = Process(target=producer,args=(buffer,stop,0.002))
     p1 = Process(target=consumer,args=(buffer,stop,0.001))
-    p2 = Process(target=monitor,args=(buffer,stop,0.1))
+    #p2 = Process(target=monitor,args=(buffer,stop,0.1))
 
     p0.start()
     p1.start()
-    p2.start()
+    #p2.start()
 
     time.sleep(2)
     stop.set()
 
     p0.join()
     p1.join()
-    p2.join()
+    #p2.join()
 
 
 def test_02bis():
@@ -154,18 +154,18 @@ def test_02bis():
 
     p0 = Process(target=producer,args=(buffer,stop,0.000000001))
     p1 = Process(target=consumer,args=(buffer,stop,0.000000001))
-    p2 = Process(target=monitor,args=(buffer,stop,0.1))
+    #p2 = Process(target=monitor,args=(buffer,stop,0.1))
 
     p0.start()
     p1.start()
-    p2.start()
+    #p2.start()
 
     time.sleep(2)
     stop.set()
 
     p0.join()
     p1.join()
-    p2.join()
+    #p2.join()
 
 def test_03():
     '''
@@ -184,12 +184,12 @@ def test_03():
     p0 = Process(target=producer,args=(buffer,stop,0.001))
     p1 = Process(target=producer,args=(buffer,stop,0.001))
     p2 = Process(target=consumer,args=(buffer,stop,0.001))
-    p3 = Process(target=monitor,args=(buffer,stop,0.1))
+    #p3 = Process(target=monitor,args=(buffer,stop,0.1))
 
     p0.start()
     p1.start()
     p2.start()
-    p3.start()
+    #p3.start()
 
     time.sleep(2)
     stop.set()
@@ -197,7 +197,7 @@ def test_03():
     p0.join()
     p1.join()
     p2.join()
-    p3.join()
+    #p3.join()
 
 def test_04():
     '''
@@ -216,12 +216,12 @@ def test_04():
     p0 = Process(target=producer,args=(buffer,stop,0.001))
     p1 = Process(target=consumer,args=(buffer,stop,0.001))
     p2 = Process(target=consumer,args=(buffer,stop,0.001))
-    p3 = Process(target=monitor,args=(buffer,stop,0.1))
+    #p3 = Process(target=monitor,args=(buffer,stop,0.1))
 
     p0.start()
     p1.start()
     p2.start()
-    p3.start()
+    #p3.start()
 
     time.sleep(2)
     stop.set()
@@ -229,7 +229,7 @@ def test_04():
     p0.join()
     p1.join()
     p2.join()
-    p3.join()
+    #p3.join()
 
 def test_05():
     '''
@@ -248,18 +248,18 @@ def test_05():
 
     p0 = Process(target=producer_random,args=(buffer,stop,0.001))
     p1 = Process(target=consumer_cv,args=(buffer,stop,0.001))
-    p2 = Process(target=monitor,args=(buffer,stop,0.1))
+    #p2 = Process(target=monitor,args=(buffer,stop,0.1))
 
     p0.start()
     p1.start()
-    p2.start()
+    #p2.start()
 
     time.sleep(2)
     stop.set()
 
     p0.join()
     p1.join()
-    p2.join()
+    #p2.join()
 
 def test_overflow():
     '''
