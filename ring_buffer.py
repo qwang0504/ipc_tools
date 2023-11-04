@@ -61,7 +61,7 @@ class OverflowRingBuffer_Locked(RingBuffer):
         self.lost_item = RawValue('I',0)
         self.data = RawArray(self.element_type.char, self.total_size) 
         
-    def get(self, blocking: bool = True, timeout: float = float('inf')) -> Optional[NDArray]:
+    def get(self, blocking: bool = True, timeout: float = float('inf'), copy: bool = True) -> Optional[NDArray]:
         '''return buffer to the current read location'''
 
         if blocking:
@@ -69,16 +69,16 @@ class OverflowRingBuffer_Locked(RingBuffer):
             deadline = time.monotonic() + timeout
 
             while (array is None) and (time.monotonic() < deadline): 
-                array = self.get_noblock()
+                array = self.get_noblock(copy)
                 if array is None:
                     time.sleep(self.t_refresh)
 
             return array
         
         else:
-            return self.get_noblock()
+            return self.get_noblock(copy)
 
-    def get_noblock(self) -> Optional[NDArray]:
+    def get_noblock(self, copy: bool) -> Optional[NDArray]:
         '''return buffer to the current read location'''
 
         with self.lock:
@@ -86,12 +86,20 @@ class OverflowRingBuffer_Locked(RingBuffer):
             if self.empty():
                 return None
 
-            element = np.frombuffer(
-                self.data, 
-                dtype = self.element_type, 
-                count = self.item_num_element,
-                offset = self.read_cursor.value * self.item_num_element * self.element_byte_size # offset should be in bytes
-            )
+            if copy:
+                element = np.frombuffer(
+                    self.data, 
+                    dtype = self.element_type, 
+                    count = self.item_num_element,
+                    offset = self.read_cursor.value * self.item_num_element * self.element_byte_size # offset should be in bytes
+                ).copy()
+            else:
+                element = np.frombuffer(
+                    self.data, 
+                    dtype = self.element_type, 
+                    count = self.item_num_element,
+                    offset = self.read_cursor.value * self.item_num_element * self.element_byte_size # offset should be in bytes
+                )
             self.read_cursor.value = (self.read_cursor.value  +  1) % self.num_items
 
         return element.reshape(self.item_shape)
@@ -167,44 +175,5 @@ class OverflowRingBuffer_Locked(RingBuffer):
 
         return reprstr
         
-class MonitoredRingBuffer(OverflowRingBuffer_Locked):
-
-    def __init__(self, refresh_every: int = 100, *args, **kwargs):
-
-        super().__init__(*args, **kwargs)
-        self.num_item_in = Value('I',0)
-        self.num_item_out = Value('I',0)
-        self.time_in = Value('d',0)
-        self.time_out = Value('d',0)
-        
-        self.refresh_every = refresh_every
-
-    def put(self, element: ArrayLike) -> None:
-        super().put(element)
-        with self.num_item_in.get_lock():
-            self.num_item_in.value += 1
-        self.display_put()
-
-    def get(self, blocking: bool = True, timeout: float = float('inf')) -> Optional[NDArray]:
-        res = super().get(blocking, timeout)
-        with self.num_item_out.get_lock():
-            self.num_item_out.value += 1
-        self.display_get()        
-
-    def display_get(self):
-
-        if (self.num_item_out.value % self.refresh_every == 0):
-            previous_time = self.time_out.value
-            self.time_out.value = time.monotonic()
-            fps = self.refresh_every/(self.time_out.value - previous_time)
-            print(f'FPS out: {fps}, buffer size: {self.size()}')
-
-    def display_put(self):
-        
-        if (self.num_item_in.value % self.refresh_every == 0):
-            previous_time = self.time_in.value
-            self.time_in.value = time.monotonic()
-            fps = self.refresh_every/(self.time_in.value - previous_time)
-            print(f'FPS in: {fps}, buffer size: {self.size()}')
 
         
