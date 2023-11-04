@@ -61,7 +61,7 @@ class OverflowRingBuffer_Locked(RingBuffer):
         self.lost_item = RawValue('I',0)
         self.data = RawArray(self.element_type.char, self.total_size) 
         
-    def get(self, blocking: bool = True, timeout: float = float('inf'), copy: bool = True) -> Optional[NDArray]:
+    def get(self, blocking: bool = True, timeout: float = float('inf'), copy: bool = False) -> Optional[NDArray]:
         '''return buffer to the current read location'''
 
         if blocking:
