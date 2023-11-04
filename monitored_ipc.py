@@ -36,7 +36,7 @@ class MonitoredRingBuffer(OverflowRingBuffer_Locked):
             previous_time = self.time_out.value
             self.time_out.value = time.monotonic()
             fps = self.refresh_every/(self.time_out.value - previous_time)
-            print(f'FPS out: {fps}, buffer size: {self.size()}')
+            print(f'FPS out: {fps}, buffer size: {self.size()}, num item out: {self.num_item_out.value}')
 
     def display_put(self) -> None:
         
@@ -44,7 +44,7 @@ class MonitoredRingBuffer(OverflowRingBuffer_Locked):
             previous_time = self.time_in.value
             self.time_in.value = time.monotonic()
             fps = self.refresh_every/(self.time_in.value - previous_time)
-            print(f'FPS in: {fps}, buffer size: {self.size()}')
+            print(f'FPS in: {fps}, buffer size: {self.size()}, num item in: {self.num_item_in.value}')
 
 
 class MonitoredQueue(queues.Queue):
@@ -87,7 +87,7 @@ class MonitoredQueue(queues.Queue):
             previous_time = self.time_out.value
             self.time_out.value = time.monotonic()
             fps = self.refresh_every/(self.time_out.value - previous_time)
-            print(f'FPS out: {fps}, buffer size: {self.qsize()}')
+            print(f'FPS out: {fps}, buffer size: {self.qsize()}, num item out: {self.num_item_out.value}')
 
     def display_put(self):
         
@@ -95,5 +95,5 @@ class MonitoredQueue(queues.Queue):
             previous_time = self.time_in.value
             self.time_in.value = time.monotonic()
             fps = self.refresh_every/(self.time_in.value - previous_time)
-            print(f'FPS in: {fps}, buffer size: {self.qsize()}')
+            print(f'FPS in: {fps}, buffer size: {self.qsize()}, num item in: {self.num_item_in.value}')
 
