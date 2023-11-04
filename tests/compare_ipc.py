@@ -10,10 +10,16 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
+# TODO: for more than one consumer, frames are not split evenly
+# between consumers. You need to account for every frame 
+# and make sure it's been processed to get to the total processing
+# time. You can still monitor individual consumer performance ?
+# Maybe an option is to monitor the queue itself ?
+  
 SHAPE = (256, 256)
 BIG_ARRAY = np.random.randint(0,255,SHAPE, dtype='B')
-NLOOP = 200
-REPEATS = 20
+NLOOP = 600
+REPEATS = 10
 
 def consumer_ringbuffer(
         buffer: RingBuffer, 

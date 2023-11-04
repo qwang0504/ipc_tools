@@ -3,7 +3,7 @@ import numpy as np
 import time
 import cv2
 
-from ring_buffer import RingBuffer, OverflowRingBuffer_Locked
+from ring_buffer import RingBuffer, OverflowRingBuffer_Locked, MonitoredRingBuffer
 
 SZ = (1024,1024)
 BIGARRAY = np.random.randint(0, 255, SZ, dtype=np.uint8)
@@ -53,7 +53,7 @@ def test_00():
     - producer and consumer ~ same speed
     '''
 
-    buffer = OverflowRingBuffer_Locked(
+    buffer = MonitoredRingBuffer(
         num_items = 100, 
         item_shape = SZ,
         data_type = np.uint8
@@ -83,7 +83,7 @@ def test_01():
     - producer faster than consumer
     '''
 
-    buffer = OverflowRingBuffer_Locked(
+    buffer = MonitoredRingBuffer(
         num_items = 100, 
         item_shape = SZ,
         data_type = np.uint8
@@ -113,7 +113,7 @@ def test_02():
     - consumer faster than producer
     '''
 
-    buffer = OverflowRingBuffer_Locked(
+    buffer = MonitoredRingBuffer(
         num_items = 100, 
         item_shape = SZ,
         data_type = np.uint8
@@ -144,7 +144,7 @@ def test_02bis():
     - AFAP
     '''
 
-    buffer = OverflowRingBuffer_Locked(
+    buffer = MonitoredRingBuffer(
         num_items = 100, 
         item_shape = SZ,
         data_type = np.uint8
@@ -173,7 +173,7 @@ def test_03():
     - 1 consumer
     '''
 
-    buffer = OverflowRingBuffer_Locked(
+    buffer = MonitoredRingBuffer(
         num_items = 100, 
         item_shape = SZ,
         data_type = np.uint8
@@ -205,7 +205,7 @@ def test_04():
     - 2 consumer
     '''
 
-    buffer = OverflowRingBuffer_Locked(
+    buffer = MonitoredRingBuffer(
         num_items = 100, 
         item_shape = SZ,
         data_type = np.uint8
@@ -238,7 +238,7 @@ def test_05():
     - producer and consumer ~ same speed
     '''
 
-    buffer = OverflowRingBuffer_Locked(
+    buffer = MonitoredRingBuffer(
         num_items = 100, 
         item_shape = SZ,
         data_type = np.uint8

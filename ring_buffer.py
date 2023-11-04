@@ -1,4 +1,4 @@
-from multiprocessing import RawArray, RawValue, RLock
+from multiprocessing import RawArray, RawValue, RLock, Value
 from typing import Optional
 import numpy as np
 from numpy.typing import NDArray, ArrayLike, DTypeLike
@@ -167,3 +167,43 @@ class OverflowRingBuffer_Locked(RingBuffer):
 
         return reprstr
         
+class MonitoredRingBuffer(OverflowRingBuffer_Locked):
+
+    def __init__(self, refresh_every: int = 100, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+        self.num_item_in = Value('I',0)
+        self.num_item_out = Value('I',0)
+        self.time_in = Value('d',0)
+        self.time_out = Value('d',0)
+        
+        self.refresh_every = refresh_every
+
+    def put(self, element: ArrayLike) -> None:
+        super().put(element)
+        with self.num_item_in.get_lock():
+            self.num_item_in.value += 1
+        self.display()
+
+    def get(self, blocking: bool = True, timeout: float = float('inf')) -> Optional[NDArray]:
+        res = super().get(blocking, timeout)
+        with self.num_item_out.get_lock():
+            self.num_item_out.value += 1
+        self.display()        
+
+    def display(self):
+        '''display buffer status'''
+        
+        if (self.num_item_in.value % self.refresh_every == 0):
+            previous_time = self.time_in.value
+            self.time_in.value = time.monotonic()
+            fps = self.refresh_every/(self.time_in.value - previous_time)
+            print(f'FPS in: {fps}, buffer size: {self.size()}')
+
+        
+        if (self.num_item_out.value % self.refresh_every == 0):
+            previous_time = self.time_out.value
+            self.time_out.value = time.monotonic()
+            fps = self.refresh_every/(self.time_out.value - previous_time)
+            print(f'FPS out: {fps}, buffer size: {self.size()}')
+
