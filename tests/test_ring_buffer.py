@@ -3,7 +3,8 @@ import numpy as np
 import time
 import cv2
 
-from ring_buffer import RingBuffer, OverflowRingBuffer_Locked, MonitoredRingBuffer
+from ring_buffer import RingBuffer, OverflowRingBuffer_Locked
+from monitored_ipc import MonitoredQueue, MonitoredRingBuffer
 
 SZ = (1024,1024)
 BIGARRAY = np.random.randint(0, 255, SZ, dtype=np.uint8)
@@ -58,6 +59,33 @@ def test_00():
         item_shape = SZ,
         data_type = np.uint8
     )
+
+    stop = Event()
+
+    p0 = Process(target=producer,args=(buffer,stop,0.001))
+    p1 = Process(target=consumer,args=(buffer,stop,0.001))
+    #p2 = Process(target=monitor,args=(buffer,stop,0.1))
+
+    p0.start()
+    p1.start()
+    #p2.start()
+
+    time.sleep(2)
+    stop.set()
+
+    p0.join()
+    p1.join()
+    #p2.join()
+
+def test_00_q():
+    '''
+    - 1 producer 
+    - 1 consumer
+    - producer and consumer ~ same speed
+    - Uses Queue
+    '''
+
+    buffer = MonitoredQueue()
 
     stop = Event()
 
@@ -149,6 +177,32 @@ def test_02bis():
         item_shape = SZ,
         data_type = np.uint8
     )
+
+    stop = Event()
+
+    p0 = Process(target=producer,args=(buffer,stop,0.000000001))
+    p1 = Process(target=consumer,args=(buffer,stop,0.000000001))
+    #p2 = Process(target=monitor,args=(buffer,stop,0.1))
+
+    p0.start()
+    p1.start()
+    #p2.start()
+
+    time.sleep(2)
+    stop.set()
+
+    p0.join()
+    p1.join()
+    #p2.join()
+
+def test_02bis_q():
+    '''
+    - 1 producer 
+    - 1 consumer
+    - AFAP
+    '''
+
+    buffer = MonitoredQueue()
 
     stop = Event()
 
@@ -329,7 +383,7 @@ def test_shape():
     buffer.put(np.arange(10))
 
 if __name__ == '__main__':
-    test_fun = [test_00, test_01, test_02, test_02bis, test_03, test_04, test_05]
+    test_fun = [test_00, test_01, test_02, test_02bis, test_02bis_q, test_03, test_04, test_05]
     for f in test_fun:
         print(f.__doc__)
         f()
