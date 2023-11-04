@@ -5,8 +5,36 @@ from typing import Optional
 from numpy.typing import NDArray, ArrayLike
 import time
 from queue import Empty
+from abc import ABC, abstractmethod
 
-class MonitoredRingBuffer(OverflowRingBuffer_Locked):
+class MonitoredIPC(ABC):
+
+    @abstractmethod
+    def put(self, element: ArrayLike) -> None:
+        pass
+
+    @abstractmethod
+    def get(self, blocking: bool = True, timeout: float = float('inf')) -> Optional[NDArray]:
+        pass
+
+    @abstractmethod
+    def initialize_receiver(self) -> None:
+        pass
+
+    @abstractmethod
+    def initialize_sender(self) -> None:
+        pass
+
+    @abstractmethod
+    def display_get(self) -> None:
+        pass
+
+    @abstractmethod
+    def display_put(self) -> None:
+        pass
+    
+
+class MonitoredRingBuffer(OverflowRingBuffer_Locked, MonitoredIPC):
 
     def __init__(self, refresh_every: int = 100, *args, **kwargs):
 
@@ -54,7 +82,7 @@ class MonitoredRingBuffer(OverflowRingBuffer_Locked):
             print(f'FPS in: {fps}, buffer size: {self.size()}, num item in: {self.num_item_in.value}')
 
 
-class MonitoredQueue(queues.Queue):
+class MonitoredQueue(queues.Queue, MonitoredIPC):
 
     def __init__(self, refresh_every: int = 100, *args, **kwargs):
 
@@ -111,7 +139,7 @@ class MonitoredQueue(queues.Queue):
             print(f'FPS in: {fps}, buffer size: {self.qsize()}, num item in: {self.num_item_in.value}')
 
 
-class MonitoredZMQ_PushPull(ZMQ_PushPull):
+class MonitoredZMQ_PushPull(ZMQ_PushPull, MonitoredIPC):
 
     def __init__(self, refresh_every: int = 100, *args, **kwargs):
 

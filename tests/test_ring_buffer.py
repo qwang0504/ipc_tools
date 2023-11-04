@@ -3,18 +3,18 @@ import numpy as np
 import time
 import cv2
 
-from ring_buffer import RingBuffer, OverflowRingBuffer_Locked
-from monitored_ipc import MonitoredQueue, MonitoredRingBuffer, MonitoredZMQ_PushPull
+from ring_buffer import  OverflowRingBuffer_Locked
+from monitored_ipc import MonitoredIPC, MonitoredQueue, MonitoredRingBuffer, MonitoredZMQ_PushPull
 
 SZ = (2048,2048) # use a size of (1024,1024) to measure throughput in MB/s
 BIGARRAY = np.random.randint(0, 255, SZ, dtype=np.uint8)
 
-def consumer_cv(ring_buf: RingBuffer, stop: Event, sleep_time: float):
-    ring_buf.initialize_receiver()
+def consumer_cv(buf: MonitoredIPC, stop: Event, sleep_time: float):
+    buf.initialize_receiver()
     start = time.time()
     count = 0
     while not stop.is_set():
-        array = ring_buf.get(timeout=2)
+        array = buf.get(timeout=2)
         if array is not None:
             count += 1
             cv2.imshow('display',array)
@@ -23,32 +23,32 @@ def consumer_cv(ring_buf: RingBuffer, stop: Event, sleep_time: float):
     cv2.destroyAllWindows()
     print((elapsed,count/elapsed))
 
-def producer_random(ring_buf: RingBuffer, stop: Event, sleep_time: float):
+def producer_random(buf: MonitoredIPC, stop: Event, sleep_time: float):
     while not stop.is_set():
-        ring_buf.put(np.random.randint(0, 255, SZ, dtype=np.uint8))
+        buf.put(np.random.randint(0, 255, SZ, dtype=np.uint8))
 
-def consumer(ring_buf: RingBuffer, stop: Event, sleep_time: float):
-    ring_buf.initialize_receiver()
+def consumer(buf: MonitoredIPC, stop: Event, sleep_time: float):
+    buf.initialize_receiver()
     start = time.time()
     count = 0
     while not stop.is_set():
-        array = ring_buf.get(timeout=2)
+        array = buf.get(timeout=2)
         time.sleep(sleep_time)
         if array is not None:
             count += 1
     elapsed = time.time() - start
     print((elapsed,count/elapsed))
 
-def producer(ring_buf: RingBuffer, stop: Event, sleep_time: float):
-    ring_buf.initialize_sender()
+def producer(buf: MonitoredIPC, stop: Event, sleep_time: float):
+    buf.initialize_sender()
     while not stop.is_set():
-        ring_buf.put(BIGARRAY)
+        buf.put(BIGARRAY)
         time.sleep(sleep_time)
 
-def monitor(ring_buf: RingBuffer, stop: Event, sleep_time: float):
-    ring_buf.initialize_sender()
+def monitor(buf: MonitoredIPC, stop: Event, sleep_time: float):
+    buf.initialize_sender()
     while not stop.is_set():
-        print(ring_buf.size())
+        print(buf.size())
         time.sleep(sleep_time)
 
 def test_00():
