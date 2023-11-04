@@ -12,7 +12,7 @@ def consumer_cv(ring_buf: RingBuffer, stop: Event, sleep_time: float):
     start = time.time()
     count = 0
     while not stop.is_set():
-        array = ring_buf.get()
+        array = ring_buf.get(timeout=2)
         if array is not None:
             count += 1
             cv2.imshow('display',array)
@@ -29,7 +29,7 @@ def consumer(ring_buf: RingBuffer, stop: Event, sleep_time: float):
     start = time.time()
     count = 0
     while not stop.is_set():
-        array = ring_buf.get()
+        array = ring_buf.get(timeout=2)
         time.sleep(sleep_time)
         if array is not None:
             count += 1
@@ -47,9 +47,11 @@ def monitor(ring_buf: RingBuffer, stop: Event, sleep_time: float):
         time.sleep(sleep_time)
 
 def test_00():
-    # 1 producer 
-    # 1 consumer
-    # producer and consumer ~ same speed
+    '''
+    - 1 producer 
+    - 1 consumer
+    - producer and consumer ~ same speed
+    '''
 
     buffer = OverflowRingBuffer_Locked(
         num_items = 100, 
@@ -75,9 +77,11 @@ def test_00():
     p2.join()
 
 def test_01():
-    # 1 producer 
-    # 1 consumer
-    # producer faster than consumer
+    '''
+    - 1 producer 
+    - 1 consumer
+    - producer faster than consumer
+    '''
 
     buffer = OverflowRingBuffer_Locked(
         num_items = 100, 
@@ -103,9 +107,11 @@ def test_01():
     p2.join()
 
 def test_02():
-    # 1 producer 
-    # 1 consumer
-    # consumer faster than producer
+    '''
+    - 1 producer 
+    - 1 consumer
+    - consumer faster than producer
+    '''
 
     buffer = OverflowRingBuffer_Locked(
         num_items = 100, 
@@ -132,9 +138,11 @@ def test_02():
 
 
 def test_02bis():
-    # 1 producer 
-    # 1 consumer
-    # AFAP
+    '''
+    - 1 producer 
+    - 1 consumer
+    - AFAP
+    '''
 
     buffer = OverflowRingBuffer_Locked(
         num_items = 100, 
@@ -160,8 +168,10 @@ def test_02bis():
     p2.join()
 
 def test_03():
-    # 2 producer 
-    # 1 consumer
+    '''
+    - 2 producer 
+    - 1 consumer
+    '''
 
     buffer = OverflowRingBuffer_Locked(
         num_items = 100, 
@@ -190,8 +200,10 @@ def test_03():
     p3.join()
 
 def test_04():
-    # 1 producer 
-    # 2 consumer
+    '''
+    - 1 producer 
+    - 2 consumer
+    '''
 
     buffer = OverflowRingBuffer_Locked(
         num_items = 100, 
@@ -220,9 +232,11 @@ def test_04():
     p3.join()
 
 def test_05():
-    # 1 producer 
-    # 1 consumer
-    # producer and consumer ~ same speed
+    '''
+    - 1 producer 
+    - 1 consumer with cv2 display
+    - producer and consumer ~ same speed
+    '''
 
     buffer = OverflowRingBuffer_Locked(
         num_items = 100, 
@@ -248,6 +262,9 @@ def test_05():
     p2.join()
 
 def test_overflow():
+    '''
+    overflow
+    '''
 
     buffer = OverflowRingBuffer_Locked(
         num_items = 5, 
@@ -263,6 +280,9 @@ def test_overflow():
     buffer.put(np.array(6, dtype=np.uint8))
 
 def test_types():
+    '''
+    types
+    '''
 
     buffer = OverflowRingBuffer_Locked(
         num_items = 5, 
@@ -294,6 +314,9 @@ def test_types():
 
     
 def test_shape():
+    '''
+    shape
+    '''
 
     buffer = OverflowRingBuffer_Locked(
         num_items = 5, 
@@ -306,10 +329,7 @@ def test_shape():
     buffer.put(np.arange(10))
 
 if __name__ == '__main__':
-    test_00()
-    test_01()
-    test_02()
-    test_02bis()
-    test_03()
-    test_04()
-    test_05()
+    test_fun = [test_00, test_01, test_02, test_02bis, test_03, test_04, test_05]
+    for f in test_fun:
+        print(f.__doc__)
+        f()

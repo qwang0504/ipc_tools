@@ -28,7 +28,7 @@ def consumer_ringbuffer(
     # loop
     for i in range(nloop):
         # get data
-        array = buffer.get()
+        array = buffer.get(timeout=2)
         # process
         processing_fun(array)
 
@@ -45,6 +45,7 @@ def consumer_zmq(
     context = zmq.Context()
     socket = context.socket(zmq.PULL)
     socket.connect("tcp://localhost:5555")
+    socket.setsockopt(zmq.RCVTIMEO, 2000)
 
     # start timing
     start_time = time.time_ns()
@@ -74,7 +75,7 @@ def consumer_queue(
     # loop
     for i in range(nloop):
         # get data
-        data = queue.get()
+        data = queue.get(timeout=2)
         array = np.frombuffer(data, dtype='B')
 
         # processs
