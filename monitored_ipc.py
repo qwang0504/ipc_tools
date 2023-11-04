@@ -3,7 +3,7 @@ from multiprocessing import  Value, queues, get_context
 from typing import Optional
 from numpy.typing import NDArray, ArrayLike
 import time
-
+from queue import Empty
 
 class MonitoredRingBuffer(OverflowRingBuffer_Locked):
 
@@ -28,6 +28,7 @@ class MonitoredRingBuffer(OverflowRingBuffer_Locked):
         with self.num_item_out.get_lock():
             self.num_item_out.value += 1
         self.display_get()        
+        return res
 
     def display_get(self) -> None:
 
@@ -67,10 +68,18 @@ class MonitoredQueue(queues.Queue):
         self.display_put()
 
     def get(self, blocking: bool = True, timeout: float = float('inf')) -> Optional[NDArray]:
-        res = super().get(blocking, timeout)
+        res = super().get(block=blocking, timeout=timeout)
         with self.num_item_out.get_lock():
             self.num_item_out.value += 1
-        self.display_get()        
+        self.display_get()     
+        return res   
+
+    def clear(self):
+        try:
+            while True:
+                self.get_nowait()
+        except Empty:
+            pass
 
     def display_get(self):
 
