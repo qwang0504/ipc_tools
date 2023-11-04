@@ -6,7 +6,7 @@ import cv2
 from ring_buffer import RingBuffer, OverflowRingBuffer_Locked
 from monitored_ipc import MonitoredQueue, MonitoredRingBuffer
 
-SZ = (2048,2048)
+SZ = (1024,1024) # use a size of (1024,1024) to measure throughput in MB/s
 BIGARRAY = np.random.randint(0, 255, SZ, dtype=np.uint8)
 
 def consumer_cv(ring_buf: RingBuffer, stop: Event, sleep_time: float):
@@ -20,7 +20,7 @@ def consumer_cv(ring_buf: RingBuffer, stop: Event, sleep_time: float):
             cv2.waitKey(1)
     elapsed = time.time() - start
     cv2.destroyAllWindows()
-    print((elapsed,count))
+    print((elapsed,count/elapsed))
 
 def producer_random(ring_buf: RingBuffer, stop: Event, sleep_time: float):
     while not stop.is_set():
@@ -35,7 +35,7 @@ def consumer(ring_buf: RingBuffer, stop: Event, sleep_time: float):
         if array is not None:
             count += 1
     elapsed = time.time() - start
-    print((elapsed,count))
+    print((elapsed,count/elapsed))
 
 def producer(ring_buf: RingBuffer, stop: Event, sleep_time: float):
     while not stop.is_set():
@@ -70,7 +70,7 @@ def test_00():
     p1.start()
     #p2.start()
 
-    time.sleep(2)
+    time.sleep(4)
     stop.set()
 
     p0.join()
@@ -97,9 +97,9 @@ def test_00_q():
     p1.start()
     #p2.start()
 
-    time.sleep(2)
+    time.sleep(4)
     stop.set()
-    time.sleep(2)
+    time.sleep(4)
 
     p0.terminate()
     p1.terminate()
@@ -128,7 +128,7 @@ def test_01():
     p1.start()
     #p2.start()
 
-    time.sleep(2)
+    time.sleep(4)
     stop.set()
 
     p0.join()
@@ -158,7 +158,7 @@ def test_02():
     p1.start()
     #p2.start()
 
-    time.sleep(2)
+    time.sleep(4)
     stop.set()
 
     p0.join()
@@ -189,7 +189,7 @@ def test_02bis():
     p1.start()
     #p2.start()
 
-    time.sleep(2)
+    time.sleep(4)
     stop.set()
 
     p0.join()
@@ -216,9 +216,9 @@ def test_02bis_q():
     p1.start()
     #p2.start()
 
-    time.sleep(2)
+    time.sleep(4)
     stop.set()
-    time.sleep(2)
+    time.sleep(4)
 
     p0.terminate()
     p1.terminate()
@@ -248,7 +248,7 @@ def test_03():
     p2.start()
     #p3.start()
 
-    time.sleep(2)
+    time.sleep(4)
     stop.set()
 
     p0.join()
@@ -280,7 +280,7 @@ def test_04():
     p2.start()
     #p3.start()
 
-    time.sleep(2)
+    time.sleep(4)
     stop.set()
 
     p0.join()
@@ -311,7 +311,7 @@ def test_05():
     p1.start()
     #p2.start()
 
-    time.sleep(2)
+    time.sleep(4)
     stop.set()
 
     p0.join()
