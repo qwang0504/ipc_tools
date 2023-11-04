@@ -6,7 +6,7 @@ import cv2
 from ring_buffer import RingBuffer, OverflowRingBuffer_Locked
 from monitored_ipc import MonitoredQueue, MonitoredRingBuffer
 
-SZ = (1024,1024)
+SZ = (2048,2048)
 BIGARRAY = np.random.randint(0, 255, SZ, dtype=np.uint8)
 
 def consumer_cv(ring_buf: RingBuffer, stop: Event, sleep_time: float):
@@ -99,9 +99,10 @@ def test_00_q():
 
     time.sleep(2)
     stop.set()
+    time.sleep(2)
 
-    p0.join()
-    p1.join()
+    p0.terminate()
+    p1.terminate()
     #p2.join()
 
 def test_01():
@@ -200,6 +201,7 @@ def test_02bis_q():
     - 1 producer 
     - 1 consumer
     - AFAP
+    - Uses Queue
     '''
 
     buffer = MonitoredQueue()
@@ -216,9 +218,10 @@ def test_02bis_q():
 
     time.sleep(2)
     stop.set()
+    time.sleep(2)
 
-    p0.join()
-    p1.join()
+    p0.terminate()
+    p1.terminate()
     #p2.join()
 
 def test_03():
@@ -383,7 +386,7 @@ def test_shape():
     buffer.put(np.arange(10))
 
 if __name__ == '__main__':
-    test_fun = [test_00, test_01, test_02, test_02bis, test_02bis_q, test_03, test_04, test_05]
+    test_fun = [test_00, test_00_q, test_01, test_02, test_02bis, test_02bis_q, test_03, test_04, test_05]
     for f in test_fun:
         print(f.__doc__)
         f()
