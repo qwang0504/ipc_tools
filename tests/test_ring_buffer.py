@@ -4,12 +4,13 @@ import time
 import cv2
 
 from ring_buffer import RingBuffer, OverflowRingBuffer_Locked
-from monitored_ipc import MonitoredQueue, MonitoredRingBuffer
+from monitored_ipc import MonitoredQueue, MonitoredRingBuffer, MonitoredZMQ_PushPull
 
-SZ = (1024,1024) # use a size of (1024,1024) to measure throughput in MB/s
+SZ = (2048,2048) # use a size of (1024,1024) to measure throughput in MB/s
 BIGARRAY = np.random.randint(0, 255, SZ, dtype=np.uint8)
 
 def consumer_cv(ring_buf: RingBuffer, stop: Event, sleep_time: float):
+    ring_buf.initialize_receiver()
     start = time.time()
     count = 0
     while not stop.is_set():
@@ -27,6 +28,7 @@ def producer_random(ring_buf: RingBuffer, stop: Event, sleep_time: float):
         ring_buf.put(np.random.randint(0, 255, SZ, dtype=np.uint8))
 
 def consumer(ring_buf: RingBuffer, stop: Event, sleep_time: float):
+    ring_buf.initialize_receiver()
     start = time.time()
     count = 0
     while not stop.is_set():
@@ -38,11 +40,13 @@ def consumer(ring_buf: RingBuffer, stop: Event, sleep_time: float):
     print((elapsed,count/elapsed))
 
 def producer(ring_buf: RingBuffer, stop: Event, sleep_time: float):
+    ring_buf.initialize_sender()
     while not stop.is_set():
         ring_buf.put(BIGARRAY)
         time.sleep(sleep_time)
 
 def monitor(ring_buf: RingBuffer, stop: Event, sleep_time: float):
+    ring_buf.initialize_sender()
     while not stop.is_set():
         print(ring_buf.size())
         time.sleep(sleep_time)
@@ -224,6 +228,38 @@ def test_02bis_q():
     p1.terminate()
     #p2.join()
 
+def test_02bis_z():
+    '''
+    - 1 producer 
+    - 1 consumer
+    - AFAP
+    - Uses ZMQ sockets
+    '''
+
+    buffer = MonitoredZMQ_PushPull(
+        item_shape = SZ,
+        data_type = np.uint8,
+        port = 5556
+    )
+
+    stop = Event()
+
+    p0 = Process(target=producer,args=(buffer,stop,0.000000001))
+    p1 = Process(target=consumer,args=(buffer,stop,0.000000001))
+    #p2 = Process(target=monitor,args=(buffer,stop,0.1))
+
+    p0.start()
+    p1.start()
+    #p2.start()
+
+    time.sleep(4)
+    stop.set()
+    time.sleep(4)
+
+    p0.terminate()
+    p1.terminate()
+    #p2.join()
+
 def test_03():
     '''
     - 2 producer 
@@ -386,7 +422,7 @@ def test_shape():
     buffer.put(np.arange(10))
 
 if __name__ == '__main__':
-    test_fun = [test_00, test_00_q, test_01, test_02, test_02bis, test_02bis_q, test_03, test_04, test_05]
+    test_fun = [test_00, test_00_q, test_01, test_02, test_02bis, test_02bis_q, test_02bis_z, test_03, test_04, test_05]
     for f in test_fun:
         print(f.__doc__)
         f()
