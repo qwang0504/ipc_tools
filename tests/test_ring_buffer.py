@@ -4,7 +4,7 @@ import time
 import cv2
 
 from ring_buffer import  OverflowRingBuffer_Locked
-from monitored_ipc import MonitoredIPC, MonitoredQueue, MonitoredRingBuffer, MonitoredZMQ_PushPull
+from monitored_ipc import MonitoredIPC, MonitoredQueue, MonitoredRingBuffer, MonitoredZMQ_PushPull, MonitoredArrayQueue
 
 SZ = (2048,2048) # use a size of (1024,1024) to measure throughput in MB/s
 BIGARRAY = np.random.randint(0, 255, SZ, dtype=np.uint8)
@@ -228,6 +228,34 @@ def test_02bis_q():
     p1.terminate()
     #p2.join()
 
+def test_02bis_aq():
+    '''
+    - 1 producer 
+    - 1 consumer
+    - AFAP
+    - Uses Array Queue
+    '''
+
+    buffer = MonitoredArrayQueue(int(100*np.prod(SZ)/(1024**2)))
+
+    stop = Event()
+
+    p0 = Process(target=producer,args=(buffer,stop,0.000000001))
+    p1 = Process(target=consumer,args=(buffer,stop,0.000000001))
+    #p2 = Process(target=monitor,args=(buffer,stop,0.1))
+
+    p0.start()
+    p1.start()
+    #p2.start()
+
+    time.sleep(4)
+    stop.set()
+    time.sleep(4)
+
+    p0.terminate()
+    p1.terminate()
+    #p2.join()
+
 def test_02bis_z():
     '''
     - 1 producer 
@@ -422,7 +450,7 @@ def test_shape():
     buffer.put(np.arange(10))
 
 if __name__ == '__main__':
-    test_fun = [test_00, test_00_q, test_01, test_02, test_02bis, test_02bis_q, test_02bis_z, test_03, test_04, test_05]
+    test_fun = [test_02bis, test_02bis_aq, test_02bis_q, test_02bis_z]
     for f in test_fun:
         print(f.__doc__)
         f()
