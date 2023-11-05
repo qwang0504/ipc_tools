@@ -169,16 +169,7 @@ def test_queues(processing_fun: Callable, num_consumers: int = 1) -> float:
 
     return stop_time.value
 
-def do_nothing(array):
-    pass
 
-def average(array):
-    array_2D = array.reshape(SHAPE)
-    mu = np.mean(array_2D)
-
-def long_computation(array):
-    array_2D = array.reshape(SHAPE)
-    U,S,V = np.linalg.svd(array_2D[0:128,0:128])
     
 if __name__ == '__main__':
     #mp.set_start_method('spawn')
