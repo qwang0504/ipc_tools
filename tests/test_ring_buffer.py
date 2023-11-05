@@ -236,7 +236,7 @@ def test_02bis_aq():
     - Uses Array Queue
     '''
 
-    buffer = MonitoredArrayQueue(int(100*np.prod(SZ)/(1024**2)))
+    buffer = MonitoredArrayQueue(max_mbytes=int(100*np.prod(SZ)/(1024**2)))
 
     stop = Event()
 
