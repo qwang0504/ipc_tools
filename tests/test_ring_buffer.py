@@ -467,6 +467,8 @@ def test_multiringbuffer():
     timestamp, index, frame = multibuffer.get()
     timestamp, index, frame = multibuffer.get()
     timestamp, index, frame = multibuffer.get()
+    timestamp, index, frame = multibuffer.get()
+    timestamp, index, frame = multibuffer.get(timeout=2)
 
     print(multibuffer)
 

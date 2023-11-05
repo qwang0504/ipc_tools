@@ -221,12 +221,15 @@ class MultiRingBuffer_Locked(RingBuffer):
         '''return buffer to the current read location'''
 
         if blocking:
-            array = None
+            array = []
+            for i in range(self.num_array):
+                array.append(None)
+
             deadline = time.monotonic() + timeout
 
-            while (array is None) and (time.monotonic() < deadline): 
+            while any([a is None for a in array]) and (time.monotonic() < deadline): 
                 array = self.get_noblock(copy)
-                if array is None:
+                if any([a is None for a in array]):
                     time.sleep(self.t_refresh)
 
             return array
@@ -234,13 +237,16 @@ class MultiRingBuffer_Locked(RingBuffer):
         else:
             return self.get_noblock(copy)
 
-    def get_noblock(self, copy: bool) -> Optional[NDArray]:
+    def get_noblock(self, copy: bool) -> List[Optional[NDArray]]:
         '''return buffer to the current read location'''
 
         with self.lock:
 
             if self.empty():
-                return None
+                res = []
+                for i in range(self.num_array):
+                    res.append(None)
+                return res
 
             element = []
             if copy:
