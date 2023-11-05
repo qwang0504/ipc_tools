@@ -1,8 +1,13 @@
 from multiprocessing import Process, Event
-from typing import Callable
+from typing import Callable, Tuple
 import numpy as np
 from numpy.typing import NDArray
 import time
+import pandas as pd
+import seaborn as sns
+from tqdm import tqdm
+import matplotlib.pyplot as plt
+
 
 SZ = (2048,2048) # use a size of (1024,1024) to measure throughput in MB/s
 BIGARRAY = np.random.randint(0, 255, SZ, dtype=np.uint8)
@@ -38,7 +43,7 @@ def run(
         num_cons: int = 1, 
         t_measurement: float = 2.0,
         timeout: float = 2.0
-    ):
+    ) -> Tuple[float, float]:
    
     # shared event to stop producers and consumers
     stop = Event()
@@ -63,30 +68,49 @@ def run(
     for p in processes:
         p.terminate()
 
+    return buffer.get_fps()
+
 if __name__ == '__main__':
 
+    timing_data = pd.DataFrame(columns=['pfun','shm','ncons','fps_in','fps_out'])
     max_size_MB = int(100*np.prod(SZ)/(1024**2))
+    nprod = 1 # zmq direct push/pull and array queue support only one producer
+    reps = 1
+    
+    for ncons in range(1,10):
+        for pfun in [do_nothing, average, long_computation]:
 
-    for nprod in range(1,3):
-        for ncons in range(1,5):
+            print(f'{ncons} cons: {pfun.__name__}')
             
-            buffers = {
-                'Ring buffer':  MonitoredRingBuffer(
-                        num_items = 100, 
-                        item_shape = SZ,
-                        data_type = np.uint8
-                    ),
-                'Array Queue':  MonitoredArrayQueue(max_mbytes=max_size_MB),
-                'ZMQ':  MonitoredZMQ_PushPull(
-                        item_shape = SZ,
-                        data_type = np.uint8,
-                        port = 5557
-                    ),
-                'Queue': MonitoredQueue()
-            }
+            for rep in tqdm(range(reps)):
 
-            for name, buf in buffers.items():
+                buffers = {
+                    'Ring buffer':  MonitoredRingBuffer(
+                            num_items = 100, 
+                            item_shape = SZ,
+                            data_type = np.uint8
+                        ),
+                    'Array Queue':  MonitoredArrayQueue(max_mbytes=max_size_MB),
+                    'ZMQ':  MonitoredZMQ_PushPull(
+                            item_shape = SZ,
+                            data_type = np.uint8,
+                            port = 5557
+                        ),
+                    'Queue': MonitoredQueue()
+                }
 
-                print(f'{name},  {ncons} consumers, {nprod} producers ' + 60 * '-' + '\n')
-                run(buffer = buf, num_cons = ncons, num_prod=nprod)
-                print('\n\n')
+                for name, buf in buffers.items():
+                        fps_in, fps_out = run(buffer = buf, processing_fun = pfun, num_cons = ncons, num_prod=nprod)
+                        row = pd.DataFrame.from_dict({
+                            'pfun': [pfun.__name__], 
+                            'shm': [name],
+                            'ncons': [ncons],
+                            'fps_in': [fps_in],
+                            'fps_out': [fps_out]
+                        })
+                        timing_data = pd.concat([timing_data, row], ignore_index=True)
+
+    #plt.figure()
+    #ax = sns.catplot(timing_data, x="shm", y="fps_in", col="pfun", kind="bar")
+    #ax = sns.catplot(timing_data, x="shm", y="fps_out", col="pfun", kind="bar")
+    #plt.show()
