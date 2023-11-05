@@ -3,7 +3,7 @@ import numpy as np
 import time
 import cv2
 
-from ring_buffer import  OverflowRingBuffer_Locked
+from ring_buffer import  OverflowRingBuffer_Locked, MultiRingBuffer_Locked
 from monitored_ipc import MonitoredIPC, MonitoredQueue, MonitoredRingBuffer, MonitoredZMQ_PushPull, MonitoredArrayQueue
 
 SZ = (2048,2048) # use a size of (1024,1024) to measure throughput in MB/s
@@ -448,6 +448,27 @@ def test_shape():
     buffer.put(np.array([1,2,3,4,5,6,7,8,9,10]))
     buffer.put([11,12,13,14,15,16,17,18,19,20])
     buffer.put(np.arange(10))
+
+def test_multiringbuffer():
+
+    multibuffer = MultiRingBuffer_Locked(
+        num_items=5,
+        item_shape=[(1,),(1,),(256,256)],
+        data_type=[np.float32, np.uint, np.uint8]
+    )
+
+    multibuffer.put([time.time(), 0, np.random.randint(0,255,(256,256),np.uint8)])
+    multibuffer.put([time.time(), 1, np.random.randint(0,255,(256,256),np.uint8)])
+    multibuffer.put([time.time(), 2, np.random.randint(0,255,(256,256),np.uint8)])
+    multibuffer.put([time.time(), 3, np.random.randint(0,255,(256,256),np.uint8)])
+
+    print(multibuffer)
+
+    timestamp, index, frame = multibuffer.get()
+    timestamp, index, frame = multibuffer.get()
+    timestamp, index, frame = multibuffer.get()
+
+    print(multibuffer)
 
 if __name__ == '__main__':
     test_fun = [test_02bis, test_02bis_aq, test_02bis_q, test_02bis_z]
