@@ -20,6 +20,7 @@ def producer(buf: MonitoredIPC, stop: Event):
     buf.initialize_sender()
     while not stop.is_set():
         buf.put(BIGARRAY)
+        time.sleep(0.0000001) # this is necessary for ring buffer to perform correctly
 
 def do_nothing(array: NDArray) -> None:
     pass
@@ -35,6 +36,7 @@ def run(
         processing_fun: Callable = do_nothing, 
         num_prod: int = 1, 
         num_cons: int = 1, 
+        t_measurement: float = 2.0,
         timeout: float = 2.0
     ):
    
@@ -49,36 +51,42 @@ def run(
         processes.append(p)
 
     for i in range(num_prod):
-        p = Process(target=producer,args=(buffer,stop))
+        p = Process(target=producer,args=(buffer, stop))
         p.start()
         processes.append(p)
         
     # measure some time 
-    time.sleep(1)
+    time.sleep(t_measurement)
 
     # stop 
     stop.set()
     for p in processes:
-        p.join()
+        p.terminate()
 
 if __name__ == '__main__':
 
-    buffers = {
-        'Ring buffer':  MonitoredRingBuffer(
-                num_items = 100, 
-                item_shape = SZ,
-                data_type = np.uint8
-            ),
-        'Array Queue':  MonitoredArrayQueue(max_mbytes=int(100*np.prod(SZ)/(1024**2))),
-        'ZMQ':  MonitoredZMQ_PushPull(
-                item_shape = SZ,
-                data_type = np.uint8,
-                port = 5556
-            ),
-        'Queue': MonitoredQueue(refresh_every=10000)
-    }
+    max_size_MB = int(100*np.prod(SZ)/(1024**2))
 
-    for name, buf in buffers.items():
-        print(f'{name} ' + 60 * '-' + '\n')
-        run(buffer= buf)
-        print('\n\n')
+    for nprod in range(1,3):
+        for ncons in range(1,5):
+            
+            buffers = {
+                'Ring buffer':  MonitoredRingBuffer(
+                        num_items = 100, 
+                        item_shape = SZ,
+                        data_type = np.uint8
+                    ),
+                'Array Queue':  MonitoredArrayQueue(max_mbytes=max_size_MB),
+                'ZMQ':  MonitoredZMQ_PushPull(
+                        item_shape = SZ,
+                        data_type = np.uint8,
+                        port = 5557
+                    ),
+                'Queue': MonitoredQueue()
+            }
+
+            for name, buf in buffers.items():
+
+                print(f'{name},  {ncons} consumers, {nprod} producers ' + 60 * '-' + '\n')
+                run(buffer = buf, num_cons = ncons, num_prod=nprod)
+                print('\n\n')
