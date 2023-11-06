@@ -71,7 +71,7 @@ def run(
 if __name__ == '__main__':
 
     timing_data = pd.DataFrame(columns=['pfun','shm','ncons','fps_in','fps_out'])
-    max_size_MB = int(5000*np.prod(SZ)/(1024**2))
+    max_size_MB = int(1000*np.prod(SZ)/(1024**2))
     nprod = 1 # zmq direct push/pull and array queue support only one producer
     reps = 10
     
