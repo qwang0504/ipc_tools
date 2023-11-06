@@ -78,6 +78,8 @@ class MonitoredRingBuffer(OverflowRingBuffer_Locked, MonitoredIPC):
         return (self.fps_in.value, self.fps_out.value)
 
     def display_get(self) -> None:
+        if self.num_item_out.value == 1:
+            self.time_out.value = time.monotonic()
 
         if (self.num_item_out.value % self.refresh_every == 0):
             previous_time = self.time_out.value
@@ -88,10 +90,12 @@ class MonitoredRingBuffer(OverflowRingBuffer_Locked, MonitoredIPC):
                 self.fps_out.value = fps
             else:
                 self.fps_out.value = (n-1)/n * self.fps_out.value + 1/n * fps
-            #print(f'FPS out: {fps}, num item out: {self.num_item_out.value}')
+            print(f'FPS out: {fps}, num item out: {self.num_item_out.value}')
 
     def display_put(self) -> None:
-        
+        if self.num_item_in.value == 1:
+            self.time_in.value = time.monotonic()
+    
         if (self.num_item_in.value % self.refresh_every == 0):
             previous_time = self.time_in.value
             self.time_in.value = time.monotonic()
@@ -101,12 +105,12 @@ class MonitoredRingBuffer(OverflowRingBuffer_Locked, MonitoredIPC):
                 self.fps_in.value = fps
             else:
                 self.fps_in.value = (n-1)/n * self.fps_out.value + 1/n * fps
-            #print(f'FPS in: {fps}, num item in: {self.num_item_in.value}')
+            print(f'FPS in: {fps}, num item in: {self.num_item_in.value}')
 
 
 class MonitoredQueue(queues.Queue, MonitoredIPC):
 
-    def __init__(self, refresh_every: int = 100, *args, **kwargs):
+    def __init__(self, refresh_every: int = 100, t_put_sleep: float = 0.0001, *args, **kwargs):
 
         ctx = get_context()
         super().__init__(*args, **kwargs, ctx=ctx)
@@ -118,12 +122,14 @@ class MonitoredQueue(queues.Queue, MonitoredIPC):
         self.fps_in = Value('d',0)
         self.fps_out = Value('d',0)
         
+        self.t_put_sleep = t_put_sleep
         self.refresh_every = refresh_every
 
     def put(self, element: ArrayLike) -> None:
         super().put(element)
         with self.num_item_in.get_lock():
             self.num_item_in.value += 1
+        time.sleep(self.t_put_sleep)
         self.display_put()
 
     def get(self, blocking: bool = True, timeout: float = float('inf')) -> Optional[NDArray]:
@@ -150,6 +156,8 @@ class MonitoredQueue(queues.Queue, MonitoredIPC):
         pass
 
     def display_get(self):
+        if self.num_item_out.value == 1:
+            self.time_out.value = time.monotonic()
 
         if (self.num_item_out.value % self.refresh_every == 0):
             previous_time = self.time_out.value
@@ -160,10 +168,12 @@ class MonitoredQueue(queues.Queue, MonitoredIPC):
                 self.fps_out.value = fps
             else:
                 self.fps_out.value = (n-1)/n * self.fps_out.value + 1/n * fps
-            #print(f'FPS out: {fps}, num item out: {self.num_item_out.value}')
+            print(f'FPS out: {fps}, num item out: {self.num_item_out.value}')
 
     def display_put(self):
-        
+        if self.num_item_in.value == 1:
+            self.time_in.value = time.monotonic()
+
         if (self.num_item_in.value % self.refresh_every == 0):
             previous_time = self.time_in.value
             self.time_in.value = time.monotonic()
@@ -173,7 +183,7 @@ class MonitoredQueue(queues.Queue, MonitoredIPC):
                 self.fps_in.value = fps
             else:
                 self.fps_in.value = (n-1)/n * self.fps_out.value + 1/n * fps
-            #print(f'FPS in: {fps}, num item in: {self.num_item_in.value}')
+            print(f'FPS in: {fps}, num item in: {self.num_item_in.value}')
 
 
 class MonitoredArrayQueue(ArrayQueue):
@@ -214,6 +224,8 @@ class MonitoredArrayQueue(ArrayQueue):
         pass
 
     def display_get(self):
+        if self.num_item_out.value == 1:
+            self.time_out.value = time.monotonic()
 
         if (self.num_item_out.value % self.refresh_every == 0):
             previous_time = self.time_out.value
@@ -224,9 +236,12 @@ class MonitoredArrayQueue(ArrayQueue):
                 self.fps_out.value = fps
             else:
                 self.fps_out.value = (n-1)/n * self.fps_out.value + 1/n * fps
-            #print(f'FPS out: {fps}, num item out: {self.num_item_out.value}')
+            print(f'FPS out: {fps}, num item out: {self.num_item_out.value}')
 
     def display_put(self):
+        if self.num_item_in.value == 1:
+            self.time_in.value = time.monotonic()
+
         
         if (self.num_item_in.value % self.refresh_every == 0):
             previous_time = self.time_in.value
@@ -237,7 +252,7 @@ class MonitoredArrayQueue(ArrayQueue):
                 self.fps_in.value = fps
             else:
                 self.fps_in.value = (n-1)/n * self.fps_out.value + 1/n * fps
-            #print(f'FPS in: {fps}, num item in: {self.num_item_in.value}')
+            print(f'FPS in: {fps}, num item in: {self.num_item_in.value}')
     
 class MonitoredZMQ_PushPull(ZMQ_PushPull, MonitoredIPC):
 
@@ -271,6 +286,8 @@ class MonitoredZMQ_PushPull(ZMQ_PushPull, MonitoredIPC):
         return (self.fps_in.value, self.fps_out.value)
     
     def display_get(self):
+        if self.num_item_out.value == 1:
+            self.time_out.value = time.monotonic()
 
         if (self.num_item_out.value % self.refresh_every == 0):
             previous_time = self.time_out.value
@@ -281,10 +298,12 @@ class MonitoredZMQ_PushPull(ZMQ_PushPull, MonitoredIPC):
                 self.fps_out.value = fps
             else:
                 self.fps_out.value = (n-1)/n * self.fps_out.value + 1/n * fps
-            #print(f'FPS out: {fps}, num item out: {self.num_item_out.value}')
+            print(f'FPS out: {fps}, num item out: {self.num_item_out.value}')
 
     def display_put(self):
-        
+        if self.num_item_in.value == 1:
+            self.time_in.value = time.monotonic()
+
         if (self.num_item_in.value % self.refresh_every == 0):
             previous_time = self.time_in.value
             self.time_in.value = time.monotonic()
@@ -294,5 +313,5 @@ class MonitoredZMQ_PushPull(ZMQ_PushPull, MonitoredIPC):
                 self.fps_in.value = fps
             else:
                 self.fps_in.value = (n-1)/n * self.fps_out.value + 1/n * fps
-            #print(f'FPS in: {fps}, num item in: {self.num_item_in.value}')
+            print(f'FPS in: {fps}, num item in: {self.num_item_in.value}')
         
