@@ -59,13 +59,13 @@ class MonitoredRingBuffer(OverflowRingBuffer_Locked, MonitoredIPC):
         super().put(element)
         with self.num_item_in.get_lock():
             self.num_item_in.value += 1
-        self.display_put()
+            self.display_put()
 
     def get(self, blocking: bool = True, timeout: float = float('inf')) -> Optional[NDArray]:
         res = super().get(blocking, timeout)
         with self.num_item_out.get_lock():
             self.num_item_out.value += 1
-        self.display_get()        
+            self.display_get()        
         return res
 
     def initialize_receiver(self):
@@ -129,14 +129,14 @@ class MonitoredQueue(queues.Queue, MonitoredIPC):
         super().put(element)
         with self.num_item_in.get_lock():
             self.num_item_in.value += 1
+            self.display_put()
         time.sleep(self.t_put_sleep)
-        self.display_put()
 
     def get(self, blocking: bool = True, timeout: float = float('inf')) -> Optional[NDArray]:
         res = super().get(block=blocking, timeout=timeout)
         with self.num_item_out.get_lock():
             self.num_item_out.value += 1
-        self.display_get()     
+            self.display_get()     
         return res   
 
     def clear(self):
@@ -205,13 +205,13 @@ class MonitoredArrayQueue(ArrayQueue):
         super().put(element)
         with self.num_item_in.get_lock():
             self.num_item_in.value += 1
-        self.display_put()
+            self.display_put()
 
     def get(self, blocking: bool = True, timeout: float = float('inf')) -> Optional[NDArray]:
         res = super().get()
         with self.num_item_out.get_lock():
             self.num_item_out.value += 1
-        self.display_get()     
+            self.display_get()     
         return res   
 
     def get_fps(self) -> Tuple[float, float]:
@@ -241,7 +241,6 @@ class MonitoredArrayQueue(ArrayQueue):
     def display_put(self):
         if self.num_item_in.value == 1:
             self.time_in.value = time.monotonic()
-
         
         if (self.num_item_in.value % self.refresh_every == 0):
             previous_time = self.time_in.value
@@ -273,13 +272,13 @@ class MonitoredZMQ_PushPull(ZMQ_PushPull, MonitoredIPC):
         super().put(element)
         with self.num_item_in.get_lock():
             self.num_item_in.value += 1
-        self.display_put()
+            self.display_put()
 
     def get(self, blocking: bool = True, timeout: float = float('inf')) -> Optional[NDArray]:
         res = super().get()
         with self.num_item_out.get_lock():
             self.num_item_out.value += 1
-        self.display_get()     
+            self.display_get()     
         return res   
 
     def get_fps(self) -> Tuple[float, float]:
