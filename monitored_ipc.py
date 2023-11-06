@@ -100,7 +100,7 @@ class MonitoredRingBuffer(OverflowRingBuffer_Locked, MonitoredIPC):
             previous_time = self.time_in.value
             self.time_in.value = time.monotonic()
             fps = self.refresh_every/(self.time_in.value - previous_time)
-            n = 1 + self.num_item_out.value // self.refresh_every 
+            n = 1 + self.num_item_in.value // self.refresh_every 
             if n == 1:
                 self.fps_in.value = fps
             else:
@@ -178,7 +178,7 @@ class MonitoredQueue(queues.Queue, MonitoredIPC):
             previous_time = self.time_in.value
             self.time_in.value = time.monotonic()
             fps = self.refresh_every/(self.time_in.value - previous_time)
-            n = 1 + self.num_item_out.value // self.refresh_every 
+            n = 1 + self.num_item_in.value // self.refresh_every 
             if n == 1:
                 self.fps_in.value = fps
             else:
@@ -247,7 +247,7 @@ class MonitoredArrayQueue(ArrayQueue):
             previous_time = self.time_in.value
             self.time_in.value = time.monotonic()
             fps = self.refresh_every/(self.time_in.value - previous_time)
-            n = 1 + self.num_item_out.value // self.refresh_every 
+            n = 1 + self.num_item_in.value // self.refresh_every 
             if n == 1:
                 self.fps_in.value = fps
             else:
@@ -308,7 +308,7 @@ class MonitoredZMQ_PushPull(ZMQ_PushPull, MonitoredIPC):
             previous_time = self.time_in.value
             self.time_in.value = time.monotonic()
             fps = self.refresh_every/(self.time_in.value - previous_time)
-            n = 1 + self.num_item_out.value // self.refresh_every 
+            n = 1 + self.num_item_in.value // self.refresh_every 
             if n == 1:
                 self.fps_in.value = fps
             else:
