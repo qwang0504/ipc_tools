@@ -73,9 +73,9 @@ def run(
 if __name__ == '__main__':
 
     timing_data = pd.DataFrame(columns=['pfun','shm','ncons','fps_in','fps_out'])
-    max_size_MB = int(1000*np.prod(SZ)/(1024**2))
+    max_size_MB = int(5000*np.prod(SZ)/(1024**2))
     nprod = 1 # zmq direct push/pull and array queue support only one producer
-    reps = 1
+    reps = 5
     
     for ncons in range(1,10):
         for pfun in [do_nothing, average, long_computation]:
@@ -90,7 +90,7 @@ if __name__ == '__main__':
                             item_shape = SZ,
                             data_type = np.uint8
                         ),
-                    'Array Queue':  MonitoredArrayQueue(max_mbytes=max_size_MB),
+                    #'Array Queue':  MonitoredArrayQueue(max_mbytes=max_size_MB),
                     'ZMQ':  MonitoredZMQ_PushPull(
                             item_shape = SZ,
                             data_type = np.uint8,
@@ -100,7 +100,15 @@ if __name__ == '__main__':
                 }
 
                 for name, buf in buffers.items():
-                        fps_in, fps_out = run(buffer = buf, processing_fun = pfun, num_cons = ncons, num_prod=nprod)
+                        
+                        fps_in, fps_out = run(
+                            buffer = buf, 
+                            processing_fun = pfun, 
+                            t_measurement = 5, 
+                            num_cons = ncons, 
+                            num_prod = nprod
+                        )
+
                         row = pd.DataFrame.from_dict({
                             'pfun': [pfun.__name__], 
                             'shm': [name],
@@ -110,7 +118,7 @@ if __name__ == '__main__':
                         })
                         timing_data = pd.concat([timing_data, row], ignore_index=True)
 
-    #plt.figure()
-    #ax = sns.catplot(timing_data, x="shm", y="fps_in", col="pfun", kind="bar")
-    #ax = sns.catplot(timing_data, x="shm", y="fps_out", col="pfun", kind="bar")
-    #plt.show()
+    plt.figure()
+    ax = sns.catplot(timing_data, x="shm", y="fps_in", col="pfun", kind="bar")
+    ax = sns.catplot(timing_data, x="shm", y="fps_out", col="pfun", kind="bar")
+    plt.show()
