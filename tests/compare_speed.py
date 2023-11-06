@@ -8,7 +8,7 @@ import seaborn as sns
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
-SZ = (2048,2048) # use a size of (1024,1024) to measure throughput in MB/s
+SZ = (1024,1024) # use a size of (1024,1024) to measure throughput in MB/s
 BIGARRAY = np.random.randint(0, 255, SZ, dtype=np.uint8)
 
 from monitored_ipc import MonitoredIPC, MonitoredQueue, MonitoredRingBuffer, MonitoredZMQ_PushPull, MonitoredArrayQueue
@@ -73,7 +73,7 @@ if __name__ == '__main__':
     timing_data = pd.DataFrame(columns=['pfun','shm','ncons','fps_in','fps_out'])
     max_size_MB = int(5000*np.prod(SZ)/(1024**2))
     nprod = 1 # zmq direct push/pull and array queue support only one producer
-    reps = 5
+    reps = 3
     
     for ncons in range(1,10):
         for pfun in [do_nothing, average, long_computation]:
@@ -104,7 +104,7 @@ if __name__ == '__main__':
                         fps_in, fps_out = run(
                             buffer = buf, 
                             processing_fun = pfun, 
-                            t_measurement = 5, 
+                            t_measurement = 3, 
                             num_cons = ncons, 
                             num_prod = nprod
                         )
