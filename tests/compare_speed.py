@@ -118,15 +118,9 @@ if __name__ == '__main__':
                         })
                         timing_data = pd.concat([timing_data, row], ignore_index=True)
 
-    ax = sns.catplot(timing_data[timing_data.ncons == 1], x="shm", y="fps_out", col="pfun", kind="bar")
-    plt.show()
-    
-    ax = sns.lineplot(timing_data[timing_data.pfun == 'do_nothing'], x="ncons", y="fps_out", hue="shm")
-    plt.show()
-    
-    ax = sns.lineplot(timing_data[timing_data.pfun == 'average'], x="ncons", y="fps_out", hue="shm")
-    plt.show()
-
-    ax = sns.lineplot(timing_data[timing_data.pfun == 'long_computation'], x="ncons", y="fps_out", hue="shm")
+    fig, ax = plt.subplots(1,3)
+    sns.lineplot(timing_data[timing_data.pfun == 'do_nothing'], x="ncons", y="fps_out", hue="shm", ax = ax[0])
+    sns.lineplot(timing_data[timing_data.pfun == 'average'], x="ncons", y="fps_out", hue="shm", ax = ax[1])
+    sns.lineplot(timing_data[timing_data.pfun == 'long_computation'], x="ncons", y="fps_out", hue="shm", ax = ax[2])
     plt.show()
     
