@@ -8,7 +8,7 @@ import seaborn as sns
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
-SZ = (1024,1024) # use a size of (1024,1024) to measure throughput in MB/s
+SZ = (2048,2048) # use a size of (1024,1024) to measure throughput in MB/s
 BIGARRAY = np.random.randint(0, 255, SZ, dtype=np.uint8)
 
 from monitored_ipc import MonitoredIPC, MonitoredQueue, MonitoredRingBuffer, MonitoredZMQ_PushPull, MonitoredArrayQueue
