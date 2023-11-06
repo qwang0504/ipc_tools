@@ -8,11 +8,9 @@ import seaborn as sns
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
-
 SZ = (2048,2048) # use a size of (1024,1024) to measure throughput in MB/s
 BIGARRAY = np.random.randint(0, 255, SZ, dtype=np.uint8)
 
-from ring_buffer import  OverflowRingBuffer_Locked, MultiRingBuffer_Locked
 from monitored_ipc import MonitoredIPC, MonitoredQueue, MonitoredRingBuffer, MonitoredZMQ_PushPull, MonitoredArrayQueue
 
 def consumer(buf: MonitoredIPC, processing_fun: Callable, stop: Event, timeout: float):
@@ -101,6 +99,8 @@ if __name__ == '__main__':
 
                 for name, buf in buffers.items():
                         
+                        print(name + 40*'-')
+
                         fps_in, fps_out = run(
                             buffer = buf, 
                             processing_fun = pfun, 
