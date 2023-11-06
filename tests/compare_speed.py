@@ -8,6 +8,9 @@ import seaborn as sns
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
+# TODO loop over array size 
+# TODO add a long single-threaded computation (maybe mode ?) 
+
 SZ = (2048,2048) # use a size of (1024,1024) to measure throughput in MB/s
 BIGARRAY = np.random.randint(0, 255, SZ, dtype=np.uint8)
 
@@ -32,7 +35,12 @@ def average(array: NDArray) -> None:
     mu = np.mean(array)
 
 def long_computation(array: NDArray) -> None:
+    # long computation already largely multithreaded 
     U,S,V = np.linalg.svd(array[0:128,0:128])
+
+def long_computation_st(array: NDArray) -> None:
+    # TODO long single-threaded computation
+    pass
 
 def run(
         buffer: MonitoredIPC, 
