@@ -36,7 +36,7 @@ class ZMQ_PushPull():
         self.receiver.connect(id)
         
     def put(self, element: ArrayLike) -> None:
-        self.sender.send(element)
+        self.sender.send(element, copy=False)
 
     def get(self) -> Optional[NDArray]:
         return np.frombuffer(self.receiver.recv(), dtype=self.element_type).reshape(self.item_shape)
