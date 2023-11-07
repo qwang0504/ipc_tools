@@ -90,7 +90,7 @@ class MonitoredRingBuffer(OverflowRingBuffer_Locked, MonitoredIPC):
                 self.fps_out.value = fps
             else:
                 self.fps_out.value = (n-1)/n * self.fps_out.value + 1/n * fps
-            print(f'FPS out: {fps}, num item out: {self.num_item_out.value}')
+            #print(f'FPS out: {fps}, num item out: {self.num_item_out.value}')
 
     def display_put(self) -> None:
         if self.num_item_in.value == 1:
@@ -105,7 +105,7 @@ class MonitoredRingBuffer(OverflowRingBuffer_Locked, MonitoredIPC):
                 self.fps_in.value = fps
             else:
                 self.fps_in.value = (n-1)/n * self.fps_in.value + 1/n * fps
-            print(f'FPS in: {fps}, num item in: {self.num_item_in.value}')
+            #print(f'FPS in: {fps}, num item in: {self.num_item_in.value}')
 
 
 class MonitoredQueue(queues.Queue, MonitoredIPC):
@@ -168,7 +168,7 @@ class MonitoredQueue(queues.Queue, MonitoredIPC):
                 self.fps_out.value = fps
             else:
                 self.fps_out.value = (n-1)/n * self.fps_out.value + 1/n * fps
-            print(f'FPS out: {fps}, num item out: {self.num_item_out.value}')
+            #print(f'FPS out: {fps}, num item out: {self.num_item_out.value}')
 
     def display_put(self):
         if self.num_item_in.value == 1:
@@ -183,7 +183,7 @@ class MonitoredQueue(queues.Queue, MonitoredIPC):
                 self.fps_in.value = fps
             else:
                 self.fps_in.value = (n-1)/n * self.fps_in.value + 1/n * fps
-            print(f'FPS in: {fps}, num item in: {self.num_item_in.value}')
+            #print(f'FPS in: {fps}, num item in: {self.num_item_in.value}')
 
 
 class MonitoredArrayQueue(ArrayQueue):
@@ -236,7 +236,7 @@ class MonitoredArrayQueue(ArrayQueue):
                 self.fps_out.value = fps
             else:
                 self.fps_out.value = (n-1)/n * self.fps_out.value + 1/n * fps
-            print(f'FPS out: {fps}, num item out: {self.num_item_out.value}')
+            #print(f'FPS out: {fps}, num item out: {self.num_item_out.value}')
 
     def display_put(self):
         if self.num_item_in.value == 1:
@@ -251,7 +251,7 @@ class MonitoredArrayQueue(ArrayQueue):
                 self.fps_in.value = fps
             else:
                 self.fps_in.value = (n-1)/n * self.fps_in.value + 1/n * fps
-            print(f'FPS in: {fps}, num item in: {self.num_item_in.value}')
+            #print(f'FPS in: {fps}, num item in: {self.num_item_in.value}')
     
 class MonitoredZMQ_PushPull(ZMQ_PushPull, MonitoredIPC):
 
@@ -297,7 +297,7 @@ class MonitoredZMQ_PushPull(ZMQ_PushPull, MonitoredIPC):
                 self.fps_out.value = fps
             else:
                 self.fps_out.value = (n-1)/n * self.fps_out.value + 1/n * fps
-            print(f'FPS out: {fps}, num item out: {self.num_item_out.value}')
+            #print(f'FPS out: {fps}, num item out: {self.num_item_out.value}')
 
     def display_put(self):
         if self.num_item_in.value == 1:
@@ -312,5 +312,5 @@ class MonitoredZMQ_PushPull(ZMQ_PushPull, MonitoredIPC):
                 self.fps_in.value = fps
             else:
                 self.fps_in.value = (n-1)/n * self.fps_in.value + 1/n * fps
-            print(f'FPS in: {fps}, num item in: {self.num_item_in.value}')
+            #print(f'FPS in: {fps}, num item in: {self.num_item_in.value}')
         

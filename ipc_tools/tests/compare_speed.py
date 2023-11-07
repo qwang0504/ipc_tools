@@ -21,7 +21,7 @@ def producer(buf: MonitoredIPC, stop: Event):
     buf.initialize_sender()
     while not stop.is_set():
         buf.put(BIGARRAY)
-        time.sleep(0.0000001) # this is necessary for ring buffer to perform correctly
+        time.sleep(0.000000001) # this is necessary for ring buffer to perform correctly
 
 def do_nothing(array: NDArray) -> None:
     pass
@@ -74,7 +74,7 @@ def run(
 if __name__ == '__main__':
 
     nprod = 1 # zmq direct push/pull and array queue support only one producer
-    reps = 5
+    reps = 3
     timing_data = pd.DataFrame(columns=['pfun','shm','ncons','fps_in','fps_out', 'frame_sz'])
 
     for SZ in [(256,256),(512,512),(1024,1024),(2048,2048)]:
