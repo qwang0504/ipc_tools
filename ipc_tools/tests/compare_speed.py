@@ -17,7 +17,8 @@ def consumer(buf: MonitoredIPC, processing_fun: Callable, stop: Event, timeout: 
     buf.initialize_receiver()
     while not stop.is_set():
         array = buf.get(timeout=timeout) # this can return None
-        processing_fun(array)
+        if array is not None:
+            processing_fun(array)
 
 def producer(buf: MonitoredIPC, stop: Event):
     buf.initialize_sender()
