@@ -87,7 +87,7 @@ if __name__ == '__main__':
             print(f'{pfun.__name__} : {timeit(lambda: pfun(BIGARRAY), number=10)} s')
 
         for ncons in range(1,10):
-            for pfun in [do_nothing, average, long_computation_mt]:
+            for pfun in [do_nothing, average, long_computation_st, long_computation_mt]:
 
                 print(f'{ncons} cons: {pfun.__name__}')
                 
@@ -130,9 +130,6 @@ if __name__ == '__main__':
                         })
                         timing_data = pd.concat([timing_data, row], ignore_index=True)
 
-    fig, ax = plt.subplots(1,3)
-    sns.lineplot(timing_data[timing_data.pfun == 'do_nothing'], x="ncons", y="fps_out", hue="shm", ax = ax[0])
-    sns.lineplot(timing_data[timing_data.pfun == 'average'], x="ncons", y="fps_out", hue="shm", ax = ax[1])
-    sns.lineplot(timing_data[timing_data.pfun == 'long_computation_mt'], x="ncons", y="fps_out", hue="shm", ax = ax[2])
+    g = sns.FacetGrid(timing_data, col="pfun", row="frame_sz")  
+    g.map_dataframe(sns.lineplot, x="ncons", y="fps_out", hue="shm")
     plt.show()
-    
