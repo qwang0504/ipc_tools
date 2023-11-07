@@ -16,7 +16,7 @@ from timeit import timeit
 def consumer(buf: MonitoredIPC, processing_fun: Callable, stop: Event, timeout: float):
     buf.initialize_receiver()
     while not stop.is_set():
-        array = buf.get(timeout=timeout)
+        array = buf.get(timeout=timeout) # this can return None
         processing_fun(array)
 
 def producer(buf: MonitoredIPC, stop: Event):
