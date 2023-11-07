@@ -12,7 +12,7 @@ setup(
         "numpy", 
         "pyzmq",
         "arrayqueues",
-        "cv2",
+        "opencv-python",
         "pandas",
         "seaborn",
         "tqdm",
