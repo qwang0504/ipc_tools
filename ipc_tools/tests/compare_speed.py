@@ -83,8 +83,8 @@ if __name__ == '__main__':
         max_size_MB = int(2000*np.prod(SZ)/(1024**2))
 
         # check execution time of processing functions
-        for pfun in [do_nothing, average, long_computation_st, long_computation_mt]:
-            print(f'{pfun.__name__} : {timeit(lambda: pfun(BIGARRAY), number=10)} s')
+        #for pfun in [do_nothing, average, long_computation_st, long_computation_mt]:
+        #    print(f'{pfun.__name__} : {timeit(lambda: pfun(BIGARRAY), number=10)} s')
 
         for ncons in tqdm([1,2,3,4,5,10,25,50,100], desc="num consumers", position = 1, leave=False):
             for pfun in tqdm([do_nothing, average, long_computation_st, long_computation_mt], desc="proc function", position = 2, leave=False):
