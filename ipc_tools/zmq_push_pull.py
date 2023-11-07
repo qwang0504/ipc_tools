@@ -8,22 +8,32 @@ class ZMQ_PushPull():
             self,             
             item_shape: ArrayLike,
             data_type: DTypeLike,
-            port: int = 5555
+            port: int = 5555,
+            ipc: bool = False
         ):
 
         self.item_shape = np.asarray(item_shape)
         self.element_type = np.dtype(data_type)
         self.port = port
+        self.ipc = ipc
 
     def initialize_sender(self):
         context = zmq.Context()
         self.sender = context.socket(zmq.PUSH)
-        self.sender.bind("tcp://*:" + str(self.port))
+        if self.ipc:
+            id = f"ipc:///tmp/{self.port}"
+        else:
+            id = f"tcp://*:{self.port}"
+        self.sender.bind(id)
 
     def initialize_receiver(self):
         context = zmq.Context()
         self.receiver = context.socket(zmq.PULL)
-        self.receiver.connect("tcp://localhost:" + str(self.port))
+        if self.ipc:
+            id = f"ipc:///tmp/{self.port}"
+        else:
+            id = f"tcp://localhost:{self.port}"
+        self.receiver.connect(id)
         
     def put(self, element: ArrayLike) -> None:
         self.sender.send(element)

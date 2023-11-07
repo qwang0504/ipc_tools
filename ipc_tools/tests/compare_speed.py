@@ -11,6 +11,8 @@ from ipc_tools import MonitoredIPC, MonitoredQueue, MonitoredRingBuffer, Monitor
 from scipy.stats import mode
 from timeit import timeit
 
+# TODO check ZMQ with ipc
+
 def consumer(buf: MonitoredIPC, processing_fun: Callable, stop: Event, timeout: float):
     buf.initialize_receiver()
     while not stop.is_set():
@@ -101,6 +103,12 @@ if __name__ == '__main__':
                                 item_shape = SZ,
                                 data_type = np.uint8,
                                 port = 5557
+                            ),
+                        'ZMQ_ipc':  MonitoredZMQ_PushPull(
+                                item_shape = SZ,
+                                data_type = np.uint8,
+                                port = 5558,
+                                ipc = True
                             ),
                         'Queue': MonitoredQueue()
                     }
