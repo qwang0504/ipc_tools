@@ -133,7 +133,12 @@ class MonitoredQueue(queues.Queue, MonitoredIPC):
         time.sleep(self.t_put_sleep)
 
     def get(self, blocking: bool = True, timeout: float = float('inf')) -> Optional[NDArray]:
-        res = super().get(block=blocking, timeout=timeout)
+        
+        try:
+            res = super().get(block=blocking, timeout=timeout)
+        except Empty:
+            res = None
+
         with self.num_item_out.get_lock():
             self.num_item_out.value += 1
             self.display_get()     
