@@ -137,3 +137,7 @@ if __name__ == '__main__':
     g = sns.FacetGrid(timing_data, col="pfun", row="frame_sz")  
     g.map_dataframe(sns.lineplot, x="ncons", y="fps_out", hue="shm")
     plt.show()
+    
+    g = sns.FacetGrid(timing_data, col="pfun", row="frame_sz")  
+    g.map_dataframe(sns.lineplot, x="ncons", y="fps_out", hue="shm")
+    plt.show()
