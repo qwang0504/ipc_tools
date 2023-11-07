@@ -3,8 +3,8 @@ import numpy as np
 import time
 import cv2
 
-from ring_buffer import  OverflowRingBuffer_Locked, MultiRingBuffer_Locked
-from monitored_ipc import MonitoredIPC, MonitoredQueue, MonitoredRingBuffer, MonitoredZMQ_PushPull, MonitoredArrayQueue
+from ipc_tools import  OverflowRingBuffer_Locked, MultiRingBuffer_Locked
+from ipc_tools import MonitoredIPC, MonitoredQueue, MonitoredRingBuffer, MonitoredZMQ_PushPull, MonitoredArrayQueue
 
 SZ = (2048,2048) # use a size of (1024,1024) to measure throughput in MB/s
 BIGARRAY = np.random.randint(0, 255, SZ, dtype=np.uint8)
