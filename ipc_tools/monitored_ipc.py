@@ -1,5 +1,5 @@
-from ring_buffer import OverflowRingBuffer_Locked
-from zmq_push_pull import ZMQ_PushPull
+from ipc_tools.ring_buffer import OverflowRingBuffer_Locked
+from ipc_tools.zmq_push_pull import ZMQ_PushPull
 from multiprocessing import  Value, queues, get_context
 from typing import Optional, Tuple
 from numpy.typing import NDArray, ArrayLike
