@@ -77,7 +77,7 @@ def run(
 if __name__ == '__main__':
 
     nprod = 1 # zmq direct push/pull and array queue support only one producer
-    reps = 3
+    reps = 1
     timing_data = pd.DataFrame(columns=['pfun','shm','ncons','fps_in','fps_out', 'frame_sz'])
 
     for SZ in tqdm([(256,256),(512,512),(1024,1024),(2048,2048)], desc="frame size", position = 0):
@@ -114,12 +114,12 @@ if __name__ == '__main__':
                         'Queue': MonitoredQueue()
                     }
 
-                    for name, buf in buffers.items():
+                    for name, buf in tqdm(buffers.items(), desc="IPC type", position = 4, leave=False):
 
                         fps_in, fps_out = run(
                             buffer = buf, 
                             processing_fun = pfun, 
-                            t_measurement = 3, 
+                            t_measurement = 2, 
                             num_cons = ncons, 
                             num_prod = nprod
                         )
