@@ -86,7 +86,7 @@ if __name__ == '__main__':
         for pfun in [do_nothing, average, long_computation_st, long_computation_mt]:
             print(f'{pfun.__name__} : {timeit(lambda: pfun(BIGARRAY), number=10)} s')
 
-        for ncons in range(1,10):
+        for ncons in [1,2,3,4,5,10,25,50,100]:
             for pfun in [do_nothing, average, long_computation_st, long_computation_mt]:
 
                 print(f'{ncons} cons: {pfun.__name__}')
