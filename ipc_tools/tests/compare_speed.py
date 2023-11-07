@@ -77,7 +77,7 @@ if __name__ == '__main__':
     reps = 3
     timing_data = pd.DataFrame(columns=['pfun','shm','ncons','fps_in','fps_out', 'frame_sz'])
 
-    for SZ in [(256,256),(512,512),(1024,1024),(2048,2048)]:
+    for SZ in tqdm([(256,256),(512,512),(1024,1024),(2048,2048)], desc="frame size", position = 0):
 
         BIGARRAY = np.random.randint(0, 255, SZ, dtype=np.uint8)
         max_size_MB = int(2000*np.prod(SZ)/(1024**2))
@@ -86,12 +86,9 @@ if __name__ == '__main__':
         for pfun in [do_nothing, average, long_computation_st, long_computation_mt]:
             print(f'{pfun.__name__} : {timeit(lambda: pfun(BIGARRAY), number=10)} s')
 
-        for ncons in [1,2,3,4,5,10,25,50,100]:
-            for pfun in [do_nothing, average, long_computation_st, long_computation_mt]:
-
-                print(f'{ncons} cons: {pfun.__name__}')
-                
-                for rep in tqdm(range(reps)):
+        for ncons in tqdm([1,2,3,4,5,10,25,50,100], desc="num consumers", position = 1, leave=False):
+            for pfun in tqdm([do_nothing, average, long_computation_st, long_computation_mt], desc="proc function", position = 2, leave=False):
+                for rep in tqdm(range(reps), desc="repetitions", position = 3, leave=False):
 
                     buffers = {
                         'Ring buffer':  MonitoredRingBuffer(
@@ -109,8 +106,6 @@ if __name__ == '__main__':
                     }
 
                     for name, buf in buffers.items():
-                            
-                        print(name + 40*'-')
 
                         fps_in, fps_out = run(
                             buffer = buf, 
