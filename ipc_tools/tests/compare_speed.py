@@ -134,10 +134,28 @@ if __name__ == '__main__':
                         })
                         timing_data = pd.concat([timing_data, row], ignore_index=True)
 
-    g = sns.FacetGrid(timing_data, col="pfun", row="frame_sz")  
-    g.map_dataframe(sns.lineplot, x="ncons", y="fps_out", hue="shm")
+    g = sns.FacetGrid(
+        timing_data, 
+        col="pfun", 
+        row="frame_sz", 
+        hue="shm", 
+        sharey=False, 
+        height = 3, 
+        aspect = 1.5
+    )  
+    g.map_dataframe(sns.lineplot, x="ncons", y="fps_out")
+    g.add_legend()
     plt.show()
     
-    g = sns.FacetGrid(timing_data, col="pfun", row="frame_sz")  
-    g.map_dataframe(sns.lineplot, x="ncons", y="fps_in", hue="shm")
+    g = sns.FacetGrid(
+        timing_data, 
+        col="pfun", 
+        row="frame_sz", 
+        hue="shm", 
+        sharey=False, 
+        height = 3, 
+        aspect = 1.5
+    )   
+    g.map_dataframe(sns.lineplot, x="ncons", y="fps_in")
+    g.add_legend()
     plt.show()
