@@ -55,13 +55,13 @@ class QueueLike(ABC):
     @abstractmethod
     def initialize_receiver(self) -> None:
         '''
-        function to execute in the receiver process
+        initialization function to execute in the receiver process
         '''
         pass
 
     @abstractmethod
     def initialize_sender(self) -> None:
         '''
-        function to execute in the sender process
+        initialization function to execute in the sender process
         '''
         pass
