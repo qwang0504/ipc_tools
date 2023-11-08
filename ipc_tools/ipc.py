@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Any
 
-class QueueLikeIPC(ABC):
+class QueueLike(ABC):
     '''
     Multiprocessing Queue-like interface for various IPC methods
     '''
