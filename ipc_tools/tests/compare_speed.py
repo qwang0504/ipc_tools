@@ -77,7 +77,7 @@ def run(
 if __name__ == '__main__':
 
     nprod = 1 # zmq direct push/pull and array queue support only one producer
-    reps = 1
+    reps = 10
     timing_data = pd.DataFrame(columns=['pfun','shm','ncons','fps_in','fps_out', 'frame_sz'])
 
     for SZ in tqdm([(256,256),(512,512),(1024,1024),(2048,2048)], desc="frame size", position = 0):
@@ -89,7 +89,7 @@ if __name__ == '__main__':
         #for pfun in [do_nothing, average, long_computation_st, long_computation_mt]:
         #    print(f'{pfun.__name__} : {timeit(lambda: pfun(BIGARRAY), number=10)} s')
 
-        for ncons in tqdm([1,2,3,4,5,10,25,50,100], desc="num consumers", position = 1, leave=False):
+        for ncons in tqdm([1,2,3,4,5,10,25], desc="num consumers", position = 1, leave=False):
             for pfun in tqdm([do_nothing, average, long_computation_st, long_computation_mt], desc="proc function", position = 2, leave=False):
                 for rep in tqdm(range(reps), desc="repetitions", position = 3, leave=False):
 
@@ -139,5 +139,5 @@ if __name__ == '__main__':
     plt.show()
     
     g = sns.FacetGrid(timing_data, col="pfun", row="frame_sz")  
-    g.map_dataframe(sns.lineplot, x="ncons", y="fps_out", hue="shm")
+    g.map_dataframe(sns.lineplot, x="ncons", y="fps_in", hue="shm")
     plt.show()
