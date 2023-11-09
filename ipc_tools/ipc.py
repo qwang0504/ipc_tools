@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, Any
 from multiprocessing.queues import Queue
 from multiprocessing import get_context
+from ipc_tools import OverflowRingBuffer_Locked 
 
 class QueueLike(ABC):
     '''
@@ -71,4 +72,6 @@ class QueueMP(Queue, QueueLike):
     def __init__(self, *args, **kwargs):
         ctx = get_context()
         super().__init__(*args, **kwargs, ctx=ctx)
-    
+
+class Queue_RingBuffer(OverflowRingBuffer_Locked, QueueLike):
+    pass
