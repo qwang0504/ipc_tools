@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Any
+from multiprocessing.queues import Queue
+from multiprocessing import get_context
 
 class QueueLike(ABC):
     '''
@@ -52,16 +54,21 @@ class QueueLike(ABC):
 
     # extra methods  --------------------------------------------------------------
 
-    @abstractmethod
     def initialize_receiver(self) -> None:
         '''
         initialization function to execute in the receiver process
         '''
         pass
 
-    @abstractmethod
     def initialize_sender(self) -> None:
         '''
         initialization function to execute in the sender process
         '''
         pass
+
+class QueueMP(Queue, QueueLike):
+
+    def __init__(self, *args, **kwargs):
+        ctx = get_context()
+        super().__init__(*args, **kwargs, ctx=ctx)
+    
