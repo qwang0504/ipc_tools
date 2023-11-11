@@ -274,7 +274,8 @@ class MultiRingBuffer_Locked(RingBuffer):
 
         return element
     
-    def check_compatible(self, element: List[ArrayLike]) -> None:
+    def put(self, element: List[ArrayLike]) -> None:
+        '''return buffer to the current write location'''
 
         if len(element) != self.num_array:
             raise ValueError(f"element should have {self.num_array} elements")
@@ -292,13 +293,6 @@ class MultiRingBuffer_Locked(RingBuffer):
             # check shape
             if any([True for s0,s1 in zip(arr_element[i].shape, self.item_shape[i]) if s0 != s1]):
                 raise ValueError(f"element {i} has the wrong shape, should be {self.item_shape[i]}")
-
-    
-    def put(self, element: List[ArrayLike]) -> None:
-        '''return buffer to the current write location'''
-
-        # check arguments
-        self.check_compatible(element)
         
         with self.lock:
 
