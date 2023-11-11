@@ -344,7 +344,7 @@ class MultiRingBuffer_Locked(RingBuffer):
                     dtype = self.element_type[i], 
                     count = num_element_stored,
                     offset = self.read_cursor.value * self.item_num_element[i] * self.element_byte_size[i] # offset should be in bytes
-                ).reshape(np.concatenate(((num_items,) , self.item_shape[i])))
+                ).reshape(np.concatenate(((num_items,) , [self.item_shape[i]] )))
             )
         
         return stored_data
