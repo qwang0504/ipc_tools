@@ -2,7 +2,7 @@ from .queue_like import QueueLike
 from multiprocessing import  Value
 from typing import Optional, Any, Tuple 
 import time
-
+from queue import Empty, Full
 class MonitoredQueue(QueueLike):
 
     def __init__(self, queue: QueueLike) -> None:
@@ -33,12 +33,19 @@ class MonitoredQueue(QueueLike):
         return self.queue.full()
 
     def put(self, obj: Any, block: Optional[bool] = True, timeout: Optional[float] = None) -> None:
-        self.queue.put(obj, block, timeout)
-        self.account_in()
-
+        try:
+            self.queue.put(obj, block, timeout)
+            self.account_in()
+        except Full:
+            pass
+    
     def get(self, block: Optional[bool] = True, timeout: Optional[float] = None) -> Any:
-        res = self.queue.get(block, timeout)
-        self.account_out()
+        try:
+            res = self.queue.get(block, timeout)
+            self.account_out()
+        except Empty:
+            res = None
+
         return res
     
     def close(self) -> None:

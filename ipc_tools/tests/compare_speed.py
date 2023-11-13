@@ -54,7 +54,10 @@ def run(
         num_prod: int = 1, 
         num_cons: int = 1, 
         t_measurement: float = 2.0,
-        timeout: float = 2.0
+        block_put: bool = False,
+        timeout_put: float = 2.0,
+        block_get: bool = False,
+        timeout_get: float = 2.0
     ) -> Tuple[float, float]:
    
     # shared event to stop producers and consumers
@@ -63,12 +66,12 @@ def run(
     # spin up processes
     processes = []
     for i in range(num_cons):
-        p = Process(target=consumer,args=(buffer, processing_fun, stop, timeout))
+        p = Process(target=consumer,args=(buffer, processing_fun, stop, block_get, timeout_get))
         p.start()
         processes.append(p)
 
     for i in range(num_prod):
-        p = Process(target=producer,args=(buffer, stop))
+        p = Process(target=producer,args=(buffer, stop, block_put, timeout_put))
         p.start()
         processes.append(p)
         
@@ -120,7 +123,11 @@ if __name__ == '__main__':
                         fps_in, fps_out = run(
                             buffer = MonitoredQueue(buf), 
                             processing_fun = pfun, 
-                            t_measurement = 2, 
+                            t_measurement = 2,
+                            block_put = False,
+                            timeout_put = 2.0,
+                            block_get = True,
+                            timeout_get = 2.0, 
                             num_cons = ncons, 
                             num_prod = nprod
                         )
