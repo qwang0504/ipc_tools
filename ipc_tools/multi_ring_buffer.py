@@ -1,5 +1,5 @@
 from multiprocessing import RawArray, RawValue, RLock
-from ipc_tools import QueueLike
+from .queue_like import QueueLike
 from typing import Optional, List
 import numpy as np
 from numpy.typing import NDArray, ArrayLike, DTypeLike

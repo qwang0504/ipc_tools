@@ -2,7 +2,7 @@ import zmq
 import numpy as np
 from typing import Optional, Any
 from numpy.typing import NDArray, ArrayLike, DTypeLike
-from ipc_tools import QueueLike
+from .queue_like import QueueLike
 
 class ZMQ_PushPull(QueueLike):
 
