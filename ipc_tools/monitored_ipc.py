@@ -8,7 +8,7 @@ from queue import Empty
 from abc import ABC, abstractmethod
 from arrayqueues.shared_arrays import ArrayQueue
 
-# TODO store average instead of printing 
+# TODO move most of that code to ipc.py, only write code for monitoring here
 
 class MonitoredIPC(ABC):
 
