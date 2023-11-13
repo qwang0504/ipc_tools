@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Any
+from multiprocessing.queues import Queue
+from multiprocessing import get_context
 
 class QueueLike(ABC):
     '''
@@ -50,3 +52,7 @@ class QueueLike(ABC):
     def cancel_join_thread(self) -> None:
         pass
 
+class QueueMP(QueueLike, Queue):
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs, ctx = get_context())
