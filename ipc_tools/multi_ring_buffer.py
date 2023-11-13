@@ -47,7 +47,7 @@ class MultiRingBuffer(QueueLike):
         self.lock = RLock()
         self.read_cursor = RawValue('I',0)
         self.write_cursor = RawValue('I',0)
-        self.lost_item = RawValue('I',0)
+        self.num_lost_item = RawValue('I',0)
 
     def get(self, block: Optional[bool] = True, timeout: Optional[float] = None) -> Optional[NDArray]:
         '''return data at the current read location'''
@@ -156,7 +156,7 @@ class MultiRingBuffer(QueueLike):
             # if the buffer is full, overwrite the next block
             if self.full():
                 self.read_cursor.value = (self.read_cursor.value  +  1) % self.num_items
-                self.lost_item.value += 1
+                self.num_lost_item.value += 1
 
             # update write cursor value
             self.write_cursor.value = (self.write_cursor.value  +  1) % self.num_items
@@ -207,7 +207,7 @@ class MultiRingBuffer(QueueLike):
             f'size: {self.qsize()}\n' +
             f'read cursor position: {self.read_cursor.value}\n' + 
             f'write cursor position: {self.write_cursor.value}\n' +
-            f'lost item: {self.lost_item.value}\n' +
+            f'lost item: {self.num_lost_item.value}\n' +
             f'buffer: {self.data}\n' + 
             f'{self.view_data()}\n'
         )
