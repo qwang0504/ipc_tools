@@ -134,7 +134,8 @@ class MultiRingBuffer(QueueLike):
 
             if arr_element[i].dtype != self.element_type[i]:
                 raise ValueError(f"element {i} has the wrong dtype, should be {self.element_type[i]}")
-            if any(arr_element[i].shape != self.item_shape[i]):
+            
+            if any([True for s0,s1 in zip(arr_element[i].shape, self.item_shape[i]) if s0 != s1]):
                 raise ValueError(f"element {i} has the wrong shape, should be {self.item_shape[i]}")
 
         
