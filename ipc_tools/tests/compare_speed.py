@@ -7,24 +7,32 @@ import pandas as pd
 import seaborn as sns
 from tqdm import tqdm
 import matplotlib.pyplot as plt
-from ipc_tools import MonitoredIPC, MonitoredQueue, MonitoredRingBuffer, MonitoredZMQ_PushPull, MonitoredArrayQueue
+from ipc_tools import MonitoredQueue, QueueMP, RingBuffer, ZMQ_PushPullArray
 from scipy.stats import mode
 from timeit import timeit
 
-# TODO check ZMQ with ipc
+def consumer(
+        buf: MonitoredQueue, 
+        processing_fun: Callable, 
+        stop: Event, 
+        block: bool, 
+        timeout: float
+    ):
 
-def consumer(buf: MonitoredIPC, processing_fun: Callable, stop: Event, timeout: float):
-    buf.initialize_receiver()
     while not stop.is_set():
-        array = buf.get(timeout=timeout) # this can return None
+        array = buf.get(block=block, timeout=timeout) # this can return None
         if array is not None:
             processing_fun(array)
 
-def producer(buf: MonitoredIPC, stop: Event):
-    buf.initialize_sender()
+def producer(
+        buf: MonitoredQueue, 
+        stop: Event,
+        block: bool, 
+        timeout: float
+    ):
+
     while not stop.is_set():
-        buf.put(BIGARRAY)
-        time.sleep(0.000000001) # this is necessary for ring buffer to perform correctly
+        buf.put(BIGARRAY, block=block, timeout=timeout)
 
 def do_nothing(array: NDArray) -> None:
     pass
@@ -41,7 +49,7 @@ def long_computation_st(array: NDArray) -> None:
     mode(array[0:256,0:256], keepdims=False)
 
 def run(
-        buffer: MonitoredIPC, 
+        buffer: MonitoredQueue, 
         processing_fun: Callable = do_nothing, 
         num_prod: int = 1, 
         num_cons: int = 1, 
@@ -72,7 +80,7 @@ def run(
     for p in processes:
         p.terminate()
 
-    return buffer.get_fps()
+    return buffer.get_average_freq()
 
 if __name__ == '__main__':
 
@@ -94,30 +102,23 @@ if __name__ == '__main__':
                 for rep in tqdm(range(reps), desc="repetitions", position = 3, leave=False):
 
                     buffers = {
-                        'Ring buffer':  MonitoredRingBuffer(
+                        'Ring buffer':  RingBuffer(
                                 num_items = 100, 
                                 item_shape = SZ,
                                 data_type = np.uint8
                             ),
-                        'Array Queue':  MonitoredArrayQueue(max_mbytes=max_size_MB),
-                        'ZMQ':  MonitoredZMQ_PushPull(
+                        'ZMQ':  ZMQ_PushPullArray(
                                 item_shape = SZ,
                                 data_type = np.uint8,
                                 port = 5557
                             ),
-                        'ZMQ_ipc':  MonitoredZMQ_PushPull(
-                                item_shape = SZ,
-                                data_type = np.uint8,
-                                port = 5558,
-                                ipc = True
-                            ),
-                        'Queue': MonitoredQueue()
+                        'Queue': QueueMP()
                     }
 
                     for name, buf in tqdm(buffers.items(), desc="IPC type", position = 4, leave=False):
 
                         fps_in, fps_out = run(
-                            buffer = buf, 
+                            buffer = MonitoredQueue(buf), 
                             processing_fun = pfun, 
                             t_measurement = 2, 
                             num_cons = ncons, 
