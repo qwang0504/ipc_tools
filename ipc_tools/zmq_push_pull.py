@@ -77,7 +77,7 @@ class ZMQ_PushPullArray(ZMQ_PushPull, QueueLike):
             if block:
                 self.sender.send(element, copy=False)
             else:
-                self.sender.send(element, flags = zmq.ZMQ_NOBLOCK, copy=False)
+                self.sender.send(element, flags = zmq.NOBLOCK, copy=False)
         except zmq.ZMQError:
             raise Full
 
@@ -112,7 +112,7 @@ class ZMQ_PushPullObj(ZMQ_PushPull, QueueLike):
             if block:
                 self.sender.send_pyobj(element, copy=False)
             else:
-                self.sender.send_pyobj(element, flags = zmq.ZMQ_NOBLOCK, copy=False)
+                self.sender.send_pyobj(element, flags = zmq.NOBLOCK, copy=False)
 
         except zmq.ZMQError:
             raise Full
@@ -125,7 +125,7 @@ class ZMQ_PushPullObj(ZMQ_PushPull, QueueLike):
             if block:
                 res = self.receiver.recv_pyobj()
             else:
-                res = self.receiver.recv_pyobj(flags = zmq.ZMQ_NOBLOCK)
+                res = self.receiver.recv_pyobj(flags = zmq.NOBLOCK)
 
         except zmq.ZMQError:
             raise Empty 
