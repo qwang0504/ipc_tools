@@ -28,6 +28,8 @@ class ZMQ_PushPull(QueueLike):
             id = f"tcp://*:{self.port}"
 
         self.sender.bind(id)
+        self.pollout = zmq.Poller()
+        self.pollout.register(self.sender, zmq.POLLOUT)
         self.sender_initialized = True
 
     def initialize_receiver(self):
@@ -40,6 +42,8 @@ class ZMQ_PushPull(QueueLike):
             id = f"tcp://localhost:{self.port}"
 
         self.receiver.connect(id)
+        self.pollin = zmq.Poller()
+        self.pollin.register(self.receiver, zmq.POLLIN)
         self.receiver_initialized = True
 
     def qsize(self):
@@ -75,7 +79,11 @@ class ZMQ_PushPullArray(ZMQ_PushPull, QueueLike):
         
         try:
             if block:
-                self.sender.send(element, copy=False)
+                socks = dict(self.pollout.poll(timeout))
+                if self.sender in socks and socks[self.sender] == zmq.POLLOUT:
+                    self.sender.send(element, copy=False)
+                else:
+                    raise zmq.ZMQError
             else:
                 self.sender.send(element, flags = zmq.NOBLOCK, copy=False)
         except zmq.ZMQError:
@@ -87,20 +95,24 @@ class ZMQ_PushPullArray(ZMQ_PushPull, QueueLike):
 
         try:
             if block:
-                res =  np.frombuffer(
-                    self.receiver.recv(), 
-                    dtype=self.element_type
-                ).reshape(self.item_shape)
+                socks = dict(self.pollin.poll(timeout))
+                if self.receiver in socks and socks[self.receiver] == zmq.POLLIN:
+                    res =  np.frombuffer(
+                        self.receiver.recv(), 
+                        dtype=self.element_type
+                    ).reshape(self.item_shape)
+                else:
+                    raise zmq.ZMQError
             else:
                 res =  np.frombuffer(
                     self.receiver.recv(flags = zmq.NOBLOCK), 
                     dtype=self.element_type
                 ).reshape(self.item_shape)
 
+            return res
+        
         except zmq.ZMQError:
             raise Empty 
-        
-        return res
     
 class ZMQ_PushPullObj(ZMQ_PushPull, QueueLike):
         
@@ -110,7 +122,11 @@ class ZMQ_PushPullObj(ZMQ_PushPull, QueueLike):
 
         try:
             if block:
-                self.sender.send_pyobj(element, copy=False)
+                socks = dict(self.pollout.poll(timeout))
+                if self.sender in socks and socks[self.sender] == zmq.POLLOUT:
+                    self.sender.send_pyobj(element, copy=False)
+                else:
+                    raise zmq.ZMQError
             else:
                 self.sender.send_pyobj(element, flags = zmq.NOBLOCK, copy=False)
 
@@ -123,12 +139,16 @@ class ZMQ_PushPullObj(ZMQ_PushPull, QueueLike):
         
         try:
             if block:
-                res = self.receiver.recv_pyobj()
+                socks = dict(self.pollin.poll(timeout))
+                if self.receiver in socks and socks[self.receiver] == zmq.POLLIN:
+                    res = self.receiver.recv_pyobj()
+                else:
+                    raise zmq.ZMQError
             else:
                 res = self.receiver.recv_pyobj(flags = zmq.NOBLOCK)
 
+            return res
+        
         except zmq.ZMQError:
             raise Empty 
         
-        return res
-    
