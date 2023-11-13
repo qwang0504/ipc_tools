@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from ipc_tools import MonitoredQueue, QueueMP, RingBuffer, ZMQ_PushPullArray
 from scipy.stats import mode
 from timeit import timeit
+from queue import Empty, Full
 
 def consumer(
         buf: MonitoredQueue, 
@@ -20,9 +21,11 @@ def consumer(
     ):
 
     while not stop.is_set():
-        array = buf.get(block=block, timeout=timeout) # this can return None
-        if array is not None:
+        try:
+            array = buf.get(block=block, timeout=timeout) # this can return None
             processing_fun(array)
+        except Empty:
+            pass
 
 def producer(
         buf: MonitoredQueue, 
@@ -32,8 +35,11 @@ def producer(
     ):
 
     while not stop.is_set():
-        buf.put(BIGARRAY, block=block, timeout=timeout)
-
+        try:
+            buf.put(BIGARRAY, block=block, timeout=timeout)
+        except Full:
+            pass
+    
 def do_nothing(array: NDArray) -> None:
     pass
 
@@ -80,15 +86,16 @@ def run(
 
     # stop 
     stop.set()
+
     for p in processes:
-        p.terminate()
+        p.join()
 
     return buffer.get_average_freq()
 
 if __name__ == '__main__':
 
     nprod = 1 # zmq direct push/pull and array queue support only one producer
-    reps = 10
+    reps = 1
     timing_data = pd.DataFrame(columns=['pfun','shm','ncons','fps_in','fps_out', 'frame_sz'])
 
     for SZ in tqdm([(256,256),(512,512),(1024,1024),(2048,2048)], desc="frame size", position = 0):
@@ -105,23 +112,25 @@ if __name__ == '__main__':
                 for rep in tqdm(range(reps), desc="repetitions", position = 3, leave=False):
 
                     buffers = {
-                        'Ring buffer':  RingBuffer(
+                        'Ring buffer': MonitoredQueue(
+                            RingBuffer(
                                 num_items = 100, 
                                 item_shape = SZ,
                                 data_type = np.uint8
-                            ),
-                        'ZMQ':  ZMQ_PushPullArray(
+                            )),
+                        'ZMQ': MonitoredQueue(
+                            ZMQ_PushPullArray(
                                 item_shape = SZ,
                                 data_type = np.uint8,
                                 port = 5557
-                            ),
-                        'Queue': QueueMP()
+                            )),
+                        'Queue': MonitoredQueue(QueueMP())
                     }
 
                     for name, buf in tqdm(buffers.items(), desc="IPC type", position = 4, leave=False):
 
                         fps_in, fps_out = run(
-                            buffer = MonitoredQueue(buf), 
+                            buffer = buf, 
                             processing_fun = pfun, 
                             t_measurement = 2,
                             block_put = False,

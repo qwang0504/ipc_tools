@@ -33,21 +33,14 @@ class MonitoredQueue(QueueLike):
         return self.queue.full()
 
     def put(self, obj: Any, block: Optional[bool] = True, timeout: Optional[float] = None) -> None:
-        try:
-            self.queue.put(obj, block, timeout)
-            self.account_in()
-        except Full:
-            pass
+        self.queue.put(obj, block, timeout)
+        self.account_in()
     
     def get(self, block: Optional[bool] = True, timeout: Optional[float] = None) -> Any:
-        try:
-            res = self.queue.get(block, timeout)
-            self.account_out()
-        except Empty:
-            res = None
-
+        res = self.queue.get(block, timeout)
+        self.account_out()
         return res
-    
+
     def close(self) -> None:
         self.queue.close()
 
