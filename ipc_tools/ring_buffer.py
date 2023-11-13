@@ -73,7 +73,7 @@ class RingBuffer(QueueLike):
         with self.lock:
 
             if self.empty():
-                return None
+                raise Empty
 
             if self.copy:
                 element = np.frombuffer(

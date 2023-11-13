@@ -84,10 +84,7 @@ class MultiRingBuffer(QueueLike):
         with self.lock:
 
             if self.empty():
-                res = []
-                for i in range(self.num_array):
-                    res.append(None)
-                return res
+                raise Empty
 
             element = []
             if self.copy:
