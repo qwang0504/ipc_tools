@@ -123,7 +123,7 @@ class RingBuffer(QueueLike):
             # update write cursor value
             self.write_cursor.value = (self.write_cursor.value  +  1) % self.num_items
 
-        # this seems to be necessary to release the lock 
+        # this seems to be necessary to give time to consumers to get the lock 
         time.sleep(self.t_refresh)
 
     def full(self):
