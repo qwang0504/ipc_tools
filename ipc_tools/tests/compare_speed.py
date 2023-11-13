@@ -87,8 +87,10 @@ def run(
     # stop 
     stop.set()
 
+    time.sleep(2) # leave some time for locks to be released
+
     for p in processes:
-        p.join()
+        p.terminate()
 
     return buffer.get_average_freq()
 
