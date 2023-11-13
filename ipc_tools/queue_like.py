@@ -50,18 +50,3 @@ class QueueLike(ABC):
     def cancel_join_thread(self) -> None:
         pass
 
-    # extra methods  --------------------------------------------------------------
-
-    @abstractmethod
-    def initialize_receiver(self) -> None:
-        '''
-        initialization function to execute in the receiver process
-        '''
-        pass
-
-    @abstractmethod
-    def initialize_sender(self) -> None:
-        '''
-        initialization function to execute in the sender process
-        '''
-        pass
