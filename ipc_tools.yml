@@ -1,0 +1,16 @@
+name: ipc_tools
+channels:
+- conda-forge
+dependencies:
+- python == 3.8.16
+- ipython
+- numpy
+- opencv
+- matplotlib
+- scipy
+- pyzmq
+- seaborn
+- tqdm
+- pip
+- pip:
+  - arrayqueues
