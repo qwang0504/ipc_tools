@@ -6,7 +6,7 @@ from numpy.typing import NDArray, ArrayLike, DTypeLike
 import time
 from queue import Empty
 
-PRIORITY_EMPTY = -1
+PRIORITY_EMPTY = 0
 
 class PriorityQueue(QueueLike):
     '''
@@ -36,7 +36,7 @@ class PriorityQueue(QueueLike):
         
         self.lock = RLock()
         self.priority = RawArray('I', [PRIORITY_EMPTY for i in range(self.num_items)])
-        self.element_location = RawArray('I', range(0, self.total_size, self.element_byte_size))
+        self.element_location = RawArray('I', range(0, self.element_byte_size*self.num_items, self.element_byte_size))
         self.num_lost_item = RawValue('I',0)
         self.data = RawArray(self.element_type.char, self.total_size) 
     
@@ -141,15 +141,23 @@ class PriorityQueue(QueueLike):
 
     def full(self):
         ''' check if buffer is full '''
-        return not any(self.priority == PRIORITY_EMPTY) # this may be inefficient
-
+        for item in self.priority:
+            if item == PRIORITY_EMPTY: 
+                return False
+        return True
+    
     def empty(self):
         ''' check if buffer is empty '''
-        return all(self.priority == PRIORITY_EMPTY) # this may be inefficient
+
+        # this may be inefficient
+        for item in self.priority:
+            if item != PRIORITY_EMPTY: 
+                return False
+        return True
 
     def qsize(self):
         ''' Return number of items currently stored in the buffer '''
-        return sum(self.priority != PRIORITY_EMPTY)
+        return len([p for p in self.priority if p != PRIORITY_EMPTY])
     
     def close(self):
         pass
@@ -160,7 +168,7 @@ class PriorityQueue(QueueLike):
 
     def view_data(self):
 
-        stored_data = np.array()
+        stored_data = np.array([])
         for element_index, element_priority  in enumerate(self.priority):
             if element_priority != PRIORITY_EMPTY:
                 location = self.element_location[element_index]
@@ -170,7 +178,7 @@ class PriorityQueue(QueueLike):
                     count = self.item_num_element,
                     offset = location # offset should be in bytes
                 )
-                stored_data = np.vstack(stored_data, stored_element)
+                stored_data = np.hstack((stored_data, stored_element))
 
         return stored_data
     
