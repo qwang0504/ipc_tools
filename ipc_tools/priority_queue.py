@@ -7,6 +7,7 @@ import time
 from queue import Empty
 
 PRIORITY_EMPTY = 0
+# TODO use a heap to store the priorities
 
 class PriorityQueue(QueueLike):
     '''

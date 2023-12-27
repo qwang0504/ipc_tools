@@ -122,7 +122,10 @@ time.sleep(4)
 p0.terminate()
 p1.terminate()
 
-buffer.get_average_freq() # problem here
+buffer.get_average_freq() 
+# I have very variable performance on different runs
+# what's going on ? Maybe argmin/argmax worst case.
+# I should profile  
 
 # when blocking and empty, get_noblock raises Empty immediately ?
 # should also be true for ring buffer ? Unless specifically try except
