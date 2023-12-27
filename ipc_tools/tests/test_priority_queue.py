@@ -126,5 +126,4 @@ buffer.get_average_freq() # problem here
 
 # when blocking and empty, get_noblock raises Empty immediately ?
 # should also be true for ring buffer ? Unless specifically try except
-# in consumer
-
+# in consume
