@@ -36,7 +36,7 @@ class PriorityQueue(QueueLike):
         
         self.lock = RLock()
         self.priority = RawArray('I', [PRIORITY_EMPTY for i in range(self.num_items)])
-        self.element_location = RawArray('I', range(0, self.element_byte_size*self.num_items, self.element_byte_size))
+        self.element_location = RawArray('I', range(0, self.element_byte_size*self.total_size, self.element_byte_size*self.item_num_element))
         self.num_lost_item = RawValue('I',0)
         self.data = RawArray(self.element_type.char, self.total_size) 
     
