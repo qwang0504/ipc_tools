@@ -1,14 +1,17 @@
 from multiprocessing import RawArray, RawValue, RLock
 from .queue_like import QueueLike
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Callable, Iterable
 import numpy as np
 from numpy.typing import NDArray, ArrayLike, DTypeLike
 import time
 from queue import Empty
 
+PRIORITY_EMPTY = -1
+
 class PriorityQueue(QueueLike):
     '''
     put takes a tuple as argument: (priority, argument)
+    priority must be positive, higher number means higher priority
     '''
 
     def __init__(
@@ -32,10 +35,20 @@ class PriorityQueue(QueueLike):
         self.total_size =  self.item_num_element * self.num_items
         
         self.lock = RLock()
-        self.read_cursor = RawValue('I',0)
-        self.write_cursor = RawValue('I',0)
+        self.priority = RawArray('I', [PRIORITY_EMPTY for i in range(self.num_items)])
+        self.element_location = RawArray('I', range(0, self.total_size, self.element_byte_size))
         self.num_lost_item = RawValue('I',0)
         self.data = RawArray(self.element_type.char, self.total_size) 
+    
+    def get_lowest_priority(self) -> Tuple[int, int]:
+        '''return index of lowest priority item'''
+        lowest_priority_index = np.argmin(self.priority)
+        return (lowest_priority_index, self.element_location[lowest_priority_index])
+
+    def get_highest_priority(self) -> Tuple[int, int]:
+        '''return index of highest priority item'''
+        highest_priority_index = np.argmax(self.priority)
+        return (highest_priority_index, self.element_location[highest_priority_index])
         
     def get(self, block: bool = True, timeout: Optional[float] = None) -> Optional[NDArray]:
         '''return buffer to the current read location'''
@@ -69,22 +82,24 @@ class PriorityQueue(QueueLike):
 
             if self.empty():
                 raise Empty
+            
+            (element_index, element_location) = self.get_highest_priority()
 
             if self.copy:
                 element = np.frombuffer(
                     self.data, 
                     dtype = self.element_type, 
                     count = self.item_num_element,
-                    offset = self.read_cursor.value * self.item_num_element * self.element_byte_size # offset should be in bytes
+                    offset = element_location # offset should be in bytes
                 ).copy()
             else:
                 element = np.frombuffer(
                     self.data, 
                     dtype = self.element_type, 
                     count = self.item_num_element,
-                    offset = self.read_cursor.value * self.item_num_element * self.element_byte_size # offset should be in bytes
+                    offset = element_location # offset should be in bytes
                 )
-            self.read_cursor.value = (self.read_cursor.value  +  1) % self.num_items
+            self.priority[element_index] = PRIORITY_EMPTY
 
         return element.reshape(self.item_shape)
     
@@ -102,16 +117,18 @@ class PriorityQueue(QueueLike):
 
         with self.lock:
 
+            (element_index, element_location) = self.get_lowest_priority()
+
             buffer = np.frombuffer(
                 self.data, 
                 dtype = self.element_type, 
                 count = self.item_num_element,
-                offset = self.write_cursor.value * self.item_num_element * self.element_byte_size # offset should be in bytes
+                offset = element_location # offset should be in bytes
             )
 
             # if the buffer is full, overwrite the next block
             if self.full():
-                self.read_cursor.value = (self.read_cursor.value  +  1) % self.num_items
+                self.priority[element_index] = priority
                 self.num_lost_item.value += 1
 
             # write flattened array content to buffer
@@ -125,33 +142,36 @@ class PriorityQueue(QueueLike):
 
     def full(self):
         ''' check if buffer is full '''
-        return self.write_cursor.value == ((self.read_cursor.value - 1) % self.num_items)
+        return not any(self.priority == PRIORITY_EMPTY) # this may be inefficient
 
     def empty(self):
         ''' check if buffer is empty '''
-        return self.write_cursor.value == self.read_cursor.value
+        return all(self.priority == PRIORITY_EMPTY) # this may be inefficient
 
     def qsize(self):
         ''' Return number of items currently stored in the buffer '''
-        return (self.write_cursor.value - self.read_cursor.value) % self.num_items
+        return sum(self.priority != PRIORITY_EMPTY)
     
     def close(self):
         pass
 
     def clear(self):
         '''clear the buffer'''
-        self.write_cursor.value = self.read_cursor.value
+        self.priority = RawArray('I', [PRIORITY_EMPTY for i in range(self.num_items)])
 
     def view_data(self):
-        num_items = self.write_cursor.value - self.read_cursor.value
-        num_element_stored = self.item_num_element * num_items
 
-        stored_data = np.frombuffer(                
-            self.data, 
-            dtype = self.element_type, 
-            count = num_element_stored,
-            offset = self.read_cursor.value * self.item_num_element * self.element_byte_size # offset should be in bytes
-        ).reshape(np.concatenate(((num_items,) , self.item_shape)))
+        stored_data = np.array()
+        for element_index, element_priority  in enumerate(self.priority):
+            if element_priority != PRIORITY_EMPTY:
+                location = self.element_location[element_index]
+                stored_element = np.frombuffer(                
+                    self.data, 
+                    dtype = self.element_type, 
+                    count = self.item_num_element,
+                    offset = location # offset should be in bytes
+                )
+                stored_data = np.vstack(stored_data, stored_element)
 
         return stored_data
     
