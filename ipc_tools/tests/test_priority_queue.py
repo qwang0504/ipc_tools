@@ -76,3 +76,46 @@ p0.terminate()
 p1.terminate()
 
 buffer.get_average_freq()
+
+# as fast as possible 
+
+def consumer_fast(buf: MonitoredQueue, stop: Event):
+    start = time.time()
+    count = 0
+    while not stop.is_set():
+        array = buf.get(timeout=2)
+        if array is not None:
+            count += 1
+    elapsed = time.time() - start
+    print((elapsed,count/elapsed))
+
+def producer_fast(buf: MonitoredQueue, stop: Event):
+    priority = 0
+    while not stop.is_set():
+        priority += 1 
+        buf.put((priority, BIGARRAY))
+
+Q = PriorityQueue(        
+        num_items = 100, 
+        item_shape = SZ,
+        data_type = np.uint8
+    )
+
+buffer = MonitoredQueue(Q)
+
+stop = Event()
+
+p0 = Process(target=producer_fast,args=(buffer,stop))
+p1 = Process(target=consumer_fast,args=(buffer,stop))
+
+p0.start()
+p1.start()
+
+time.sleep(4)
+stop.set()
+time.sleep(4)
+
+p0.terminate()
+p1.terminate()
+
+buffer.get_average_freq()
