@@ -11,7 +11,7 @@ PRIORITY_EMPTY = 0
 class PriorityQueue(QueueLike):
     '''
     put takes a tuple as argument: (priority, argument)
-    priority must be positive, higher number means higher priority
+    priority must be strictly positive, higher number means higher priority
     '''
 
     def __init__(
