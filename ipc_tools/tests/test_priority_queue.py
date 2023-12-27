@@ -100,7 +100,7 @@ def producer_fast(buf: MonitoredQueue, stop: Event):
         buf.put((priority, BIGARRAY))
 
 Q = PriorityQueue(        
-        num_items = 100, 
+        num_items = 10, 
         item_shape = SZ,
         data_type = np.uint8
     )
@@ -122,10 +122,12 @@ time.sleep(4)
 p0.terminate()
 p1.terminate()
 
-buffer.get_average_freq() 
+print(f'Freq in, freq out: {buffer.get_average_freq()}') 
+print(f'Num item lost: {buffer.queue.num_lost_item.value}')
 # I have very variable performance on different runs
 # what's going on ? Maybe argmin/argmax worst case.
 # I should profile  
+# Much faster and more reliable with small queue size (~10)
 
 # when blocking and empty, get_noblock raises Empty immediately ?
 # should also be true for ring buffer ? Unless specifically try except
