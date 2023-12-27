@@ -118,4 +118,4 @@ time.sleep(4)
 p0.terminate()
 p1.terminate()
 
-buffer.get_average_freq()
+buffer.get_average_freq() # problem here
