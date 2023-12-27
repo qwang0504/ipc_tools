@@ -2,12 +2,12 @@ from ipc_tools import PriorityQueue
 import numpy as np
 
 SZ = (4,4)
-BIGARRAY = np.random.randint(0, 255, SZ, dtype=np.uint8)
+BIGARRAY = np.random.randint(0, 255, SZ, dtype=np.int32)
 
 Q = PriorityQueue(        
         num_items = 100, 
         item_shape = SZ,
-        data_type = np.uint8
+        data_type = np.int32
     )
 
 Q.put((1, BIGARRAY))
