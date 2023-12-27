@@ -3,6 +3,7 @@ import numpy as np
 from multiprocessing import Process, Event
 import cv2
 import time
+from queue import Empty
 
 # test basic functionality
 
@@ -49,7 +50,7 @@ def producer_random(buf: MonitoredQueue, stop: Event):
         priority += 1 
         buf.put((priority, np.random.randint(0, 255, SZ, dtype=np.uint8)))
 
-SZ = (1024, 1024, 3)
+SZ = (2048, 2048)
 BIGARRAY = np.random.randint(0, 255, SZ, dtype=np.uint8)
 
 Q = PriorityQueue(        
@@ -83,9 +84,12 @@ def consumer_fast(buf: MonitoredQueue, stop: Event):
     start = time.time()
     count = 0
     while not stop.is_set():
-        array = buf.get(timeout=2)
-        if array is not None:
-            count += 1
+        try:
+            array = buf.get(block=True, timeout=2)
+            if array is not None:
+                count += 1
+        except Empty:
+            pass
     elapsed = time.time() - start
     print((elapsed,count/elapsed))
 
@@ -119,3 +123,8 @@ p0.terminate()
 p1.terminate()
 
 buffer.get_average_freq() # problem here
+
+# when blocking and empty, get_noblock raises Empty immediately ?
+# should also be true for ring buffer ? Unless specifically try except
+# in consumer
+
