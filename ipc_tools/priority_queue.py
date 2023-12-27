@@ -1,6 +1,6 @@
 from multiprocessing import RawArray, RawValue, RLock
 from .queue_like import QueueLike
-from typing import Optional, Tuple, Callable, Iterable
+from typing import Optional, Tuple
 import numpy as np
 from numpy.typing import NDArray, ArrayLike, DTypeLike
 import time
@@ -128,14 +128,13 @@ class PriorityQueue(QueueLike):
 
             # if the buffer is full, overwrite the next block
             if self.full():
-                self.priority[element_index] = priority
                 self.num_lost_item.value += 1
 
             # write flattened array content to buffer
             buffer[:] = arr_element.ravel()
 
             # update write cursor value
-            self.write_cursor.value = (self.write_cursor.value  +  1) % self.num_items
+            self.priority[element_index] = priority
 
         # this seems to be necessary to give time to consumers to get the lock 
         time.sleep(self.t_refresh)
@@ -182,8 +181,7 @@ class PriorityQueue(QueueLike):
             f'item shape: {self.item_shape}\n' +
             f'data type: {self.element_type}\n' +
             f'size: {self.qsize()}\n' +
-            f'read cursor position: {self.read_cursor.value}\n' + 
-            f'write cursor position: {self.write_cursor.value}\n' +
+            f'priority, location: {[(p,l) for (p,l) in zip(self.priority, self.element_location) if p != PRIORITY_EMPTY]}\n' + 
             f'lost item: {self.num_lost_item.value}\n' +
             f'buffer: {self.data}\n' + 
             f'{self.view_data()}\n'
