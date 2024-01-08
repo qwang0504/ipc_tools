@@ -1,7 +1,7 @@
 # This code has been extensively copied from the heapq module
 
-# self.heap.pop 
-# self.heap.append
+# self.heap.pop -> removes last item
+# self.heap.append -> appends to the right
 
 class Heap:
 
