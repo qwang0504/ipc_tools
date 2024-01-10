@@ -170,7 +170,7 @@ class NormalHeap:
     def __str__(self):
         return str(self.heap)
 
-class Heap2:
+class SharedHeap:
 
     def __init__(self, heapsize: int, heaptype: HeapType = HeapType.MINHEAP) -> None:
         self.heapsize = heapsize
