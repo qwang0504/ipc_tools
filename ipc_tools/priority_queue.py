@@ -5,6 +5,7 @@ import numpy as np
 from numpy.typing import NDArray, ArrayLike, DTypeLike
 import time
 from queue import Empty
+from ipc_tools import SharedHeap
 
 PRIORITY_EMPTY = 0
 # TODO use a heap to store the priorities
