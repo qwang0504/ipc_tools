@@ -2,9 +2,8 @@ import unittest
 from ipc_tools import (
     MinHeap, MaxHeap, MinMaxHeap, 
     SharedMinHeap, SharedMaxHeap, SharedMinMaxHeap,
-    SharedHeapTuple, HeapType
+    SharedMinHeapTuple, SharedMaxHeapTuple, SharedMinMaxHeapTuple
 )
-
 
 TEST_SEQ = [0,5,2,10,-1]
 TEST_TUPLE_SEQ = [
@@ -36,7 +35,7 @@ class TestOrdering(unittest.TestCase):
         h = MinHeap()
         push_test_sequence(h)
         popped = []
-        for i in range(5):
+        for i in range(len(TEST_SEQ)):
             popped.append(h.pop())
         self.assertEqual(popped, ASCENDING_TEST_SEQ)
 
@@ -44,7 +43,7 @@ class TestOrdering(unittest.TestCase):
         h = MaxHeap()
         push_test_sequence(h)
         popped = []
-        for i in range(5):
+        for i in range(len(TEST_SEQ)):
             popped.append(h.pop())
         self.assertEqual(popped, DESCENDING_TEST_SEQ)
 
@@ -53,13 +52,13 @@ class TestOrdering(unittest.TestCase):
 
         push_test_sequence(h)
         popped = []
-        for i in range(5):
+        for i in range(len(TEST_SEQ)):
             popped.append(h.pop_min())
         self.assertEqual(popped, ASCENDING_TEST_SEQ)
 
         push_test_sequence(h)
         popped = []
-        for i in range(5):
+        for i in range(len(TEST_SEQ)):
             popped.append(h.pop_max())
         self.assertEqual(popped, DESCENDING_TEST_SEQ)
 
@@ -67,7 +66,7 @@ class TestOrdering(unittest.TestCase):
         h = SharedMinHeap(heapsize=10)
         push_test_sequence(h)
         popped = []
-        for i in range(5):
+        for i in range(len(TEST_SEQ)):
             popped.append(h.pop())
         self.assertEqual(popped, ASCENDING_TEST_SEQ)
 
@@ -75,39 +74,54 @@ class TestOrdering(unittest.TestCase):
         h = SharedMaxHeap(heapsize=10)
         push_test_sequence(h)
         popped = []
-        for i in range(5):
+        for i in range(len(TEST_SEQ)):
             popped.append(h.pop())
         self.assertEqual(popped, DESCENDING_TEST_SEQ)
 
+    def test_ordering_shared_minmaxheap(self):
+        h = SharedMinMaxHeap(heapsize=10)
+
+        push_test_sequence(h)
+        popped = []
+        for i in range(len(TEST_SEQ)):
+            popped.append(h.pop_min())
+        self.assertEqual(popped, ASCENDING_TEST_SEQ)
+
+        push_test_sequence(h)
+        popped = []
+        for i in range(len(TEST_SEQ)):
+            popped.append(h.pop_max())
+        self.assertEqual(popped, DESCENDING_TEST_SEQ)
+
     def test_ordering_shared_tuple_minheap(self):
-        h = SharedHeapTuple(heapsize=10, tuplen=2, sortkey=0, heaptype = HeapType.MINHEAP)
+        h = SharedMinHeapTuple(heapsize=10, tuplen=2, sortkey=0)
         push_test_sequence_tuple(h)
         popped = []
-        for i in range(5):
+        for i in range(len(TEST_TUPLE_SEQ)):
             popped.append(h.pop())
         self.assertEqual(popped, ASCENDING_TEST_TUPLE_SEQ_KEY0)
 
     def test_ordering_shared_tuple_maxheap(self):
-        h = SharedHeapTuple(heapsize=10, tuplen=2, sortkey=0, heaptype = HeapType.MAXHEAP)
+        h = SharedMaxHeapTuple(heapsize=10, tuplen=2, sortkey=0)
         push_test_sequence_tuple(h)
         popped = []
-        for i in range(5):
+        for i in range(len(TEST_TUPLE_SEQ)):
             popped.append(h.pop())
         self.assertEqual(popped, DESCENDING_TEST_TUPLE_SEQ_KEY0)
 
     def test_ordering_shared_tuple_minheap_sortkey(self):
-        h = SharedHeapTuple(heapsize=10, tuplen=2, sortkey=1, heaptype = HeapType.MINHEAP)
+        h = SharedMinHeapTuple(heapsize=10, tuplen=2, sortkey=1)
         push_test_sequence_tuple(h)
         popped = []
-        for i in range(5):
+        for i in range(len(TEST_TUPLE_SEQ)):
             popped.append(h.pop())
         self.assertEqual(popped, ASCENDING_TEST_TUPLE_SEQ_KEY1)
 
     def test_ordering_shared_tuple_maxheap_sortkey(self):
-        h = SharedHeapTuple(heapsize=10, tuplen=2, sortkey=1, heaptype = HeapType.MAXHEAP)
+        h = SharedMaxHeapTuple(heapsize=10, tuplen=2, sortkey=1)
         push_test_sequence_tuple(h)
         popped = []
-        for i in range(5):
+        for i in range(len(TEST_TUPLE_SEQ)):
             popped.append(h.pop())
         self.assertEqual(popped, DESCENDING_TEST_TUPLE_SEQ_KEY1)
 
