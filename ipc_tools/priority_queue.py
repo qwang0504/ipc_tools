@@ -5,7 +5,7 @@ import numpy as np
 from numpy.typing import NDArray, ArrayLike, DTypeLike
 import time
 from queue import Empty
-from ipc_tools import SharedHeapTuple, HeapType
+from ipc_tools import SharedMinMaxHeapTuple
 
 PRIORITY_EMPTY = 0
 # TODO use a heap to store the priorities
@@ -222,11 +222,10 @@ class PriorityQueueHeap(QueueLike):
         self.total_size =  self.item_num_element * self.num_items
         
         self.lock = RLock()
-        self.priority = SharedHeapTuple(
+        self.priority = SharedMinMaxHeapTuple(
             self.num_items, 
             tuplen=2, 
-            sortkey=0, 
-            heaptype=HeapType.MINHEAP
+            sortkey=0
         )
         locations = range(0, self.element_byte_size*self.total_size, self.element_byte_size*self.item_num_element)
         initial_priorities = [PRIORITY_EMPTY for i in locations]
