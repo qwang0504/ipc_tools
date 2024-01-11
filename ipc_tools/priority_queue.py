@@ -5,7 +5,7 @@ import numpy as np
 from numpy.typing import NDArray, ArrayLike, DTypeLike
 import time
 from queue import Empty
-from ipc_tools import SharedHeap, HeapType
+from ipc_tools import SharedHeapTuple, HeapType
 
 PRIORITY_EMPTY = 0
 # TODO use a heap to store the priorities
@@ -222,20 +222,29 @@ class PriorityQueueHeap(QueueLike):
         self.total_size =  self.item_num_element * self.num_items
         
         self.lock = RLock()
-        self.priority = SharedHeap(self.num_items, HeapType.MAXHEAP)
-        self.element_location = RawArray('I', range(0, self.element_byte_size*self.total_size, self.element_byte_size*self.item_num_element))
+        self.min_priority = SharedHeapTuple(
+            self.num_items, 
+            tuplen=2, 
+            sortkey=0, 
+            heaptype=HeapType.MINHEAP
+        )
+        locations = range(0, self.element_byte_size*self.total_size, self.element_byte_size*self.item_num_element)
+        initial_priorities = [PRIORITY_EMPTY for i in locations]
+        for tup in zip(initial_priorities, locations):
+            self.priority.push(tup)
+
         self.num_lost_item = RawValue('I',0)
         self.data = RawArray(self.element_type.char, self.total_size) 
     
-    def get_lowest_priority(self) -> Tuple[int, int]:
+    def get_lowest_priority(self) -> int:
         '''return index of lowest priority item'''
-        lowest_priority_index = np.argmin(self.priority)
-        return (lowest_priority_index, self.element_location[lowest_priority_index])
+        _, location = self.priority._pop_min()
+        return location
 
     def get_highest_priority(self) -> Tuple[int, int]:
         '''return index of highest priority item'''
-        highest_priority_index = np.argmax(self.priority)
-        return (highest_priority_index, self.element_location[highest_priority_index])
+        _, location = self.priority._pop_max()
+        return location
         
     def get(self, block: bool = True, timeout: Optional[float] = None) -> Optional[NDArray]:
         '''return buffer to the current read location'''
@@ -270,7 +279,7 @@ class PriorityQueueHeap(QueueLike):
             if self.empty():
                 raise Empty
             
-            (element_index, element_location) = self.get_highest_priority()
+            element_location = self.get_highest_priority()
 
             if self.copy:
                 element = np.frombuffer(
@@ -286,7 +295,7 @@ class PriorityQueueHeap(QueueLike):
                     count = self.item_num_element,
                     offset = element_location # offset should be in bytes
                 )
-            self.priority[element_index] = PRIORITY_EMPTY
+            self.priority.push((PRIORITY_EMPTY, element_location))
 
         return element.reshape(self.item_shape)
     
@@ -304,7 +313,7 @@ class PriorityQueueHeap(QueueLike):
 
         with self.lock:
 
-            (element_index, element_location) = self.get_lowest_priority()
+            element_location = self.get_lowest_priority()
 
             buffer = np.frombuffer(
                 self.data, 
@@ -321,7 +330,7 @@ class PriorityQueueHeap(QueueLike):
             buffer[:] = arr_element.ravel()
 
             # update write cursor value
-            self.priority[element_index] = priority
+            self.priority.push((priority, element_location))
 
         # this seems to be necessary to give time to consumers to get the lock 
         time.sleep(self.t_refresh)
