@@ -1,5 +1,10 @@
 import unittest
-from ipc_tools import NormalHeap, SharedHeap, SharedHeapTuple, HeapType
+from ipc_tools import (
+    MinHeap, MaxHeap, MinMaxHeap, 
+    SharedMinHeap, SharedMaxHeap, SharedMinMaxHeap,
+    SharedHeapTuple, HeapType
+)
+
 
 TEST_SEQ = [0,5,2,10,-1]
 TEST_TUPLE_SEQ = [
@@ -28,7 +33,7 @@ def push_test_sequence_tuple(h) -> None:
 class TestOrdering(unittest.TestCase):
 
     def test_ordering_normal_minheap(self):
-        h = NormalHeap(heaptype = HeapType.MINHEAP)
+        h = MinHeap()
         push_test_sequence(h)
         popped = []
         for i in range(5):
@@ -36,15 +41,30 @@ class TestOrdering(unittest.TestCase):
         self.assertEqual(popped, ASCENDING_TEST_SEQ)
 
     def test_ordering_normal_maxheap(self):
-        h = NormalHeap(heaptype = HeapType.MAXHEAP)
+        h = MaxHeap()
         push_test_sequence(h)
         popped = []
         for i in range(5):
             popped.append(h.pop())
         self.assertEqual(popped, DESCENDING_TEST_SEQ)
 
+    def test_ordering_normal_minmaxheap(self):
+        h = MinMaxHeap()
+
+        push_test_sequence(h)
+        popped = []
+        for i in range(5):
+            popped.append(h.pop_min())
+        self.assertEqual(popped, ASCENDING_TEST_SEQ)
+
+        push_test_sequence(h)
+        popped = []
+        for i in range(5):
+            popped.append(h.pop_max())
+        self.assertEqual(popped, DESCENDING_TEST_SEQ)
+
     def test_ordering_shared_minheap(self):
-        h = SharedHeap(heapsize=10, heaptype = HeapType.MINHEAP)
+        h = SharedMinHeap(heapsize=10)
         push_test_sequence(h)
         popped = []
         for i in range(5):
@@ -52,7 +72,7 @@ class TestOrdering(unittest.TestCase):
         self.assertEqual(popped, ASCENDING_TEST_SEQ)
 
     def test_ordering_shared_maxheap(self):
-        h = SharedHeap(heapsize=10, heaptype = HeapType.MAXHEAP)
+        h = SharedMaxHeap(heapsize=10)
         push_test_sequence(h)
         popped = []
         for i in range(5):
