@@ -1,7 +1,196 @@
 from multiprocessing import RawArray
 from enum import Enum
 from typing import Tuple, List
+from abc import ABC
 
+class Heap(ABC):
+    def push(self, item) -> None:
+        pass
+
+    def _siftup(self) -> None:
+        pass
+
+    def _siftdown(self) -> None:
+        pass
+
+    def clear(self) -> None:
+        pass
+
+class MinHeap(Heap):
+    def __init__(self) -> None:
+        self.heap = []
+
+    def push(self, item) -> None:
+        self.heap.append(item)
+        self._siftdown(0, len(self.heap)-1)
+
+    def pop(self):
+        lastelt = self.heap.pop()  
+        if self.heap:
+            returnitem = self.heap[0]
+            self.heap[0] = lastelt
+            self._siftup(0)
+            return returnitem
+        return lastelt
+
+    def _siftup(self, pos):
+        endpos = len(self.heap)
+        startpos = pos
+        newitem = self.heap[pos]
+        childpos = 2*pos + 1    # leftmost child position
+
+        # Bubble up the smaller child until hitting a leaf.
+        while childpos < endpos:
+            # Set childpos to index of smaller child.
+            rightpos = childpos + 1
+            if rightpos < endpos and not self.heap[childpos] < self.heap[rightpos]:
+                childpos = rightpos
+
+            # Move the smaller child up.
+            self.heap[pos] = self.heap[childpos]
+            pos = childpos
+            childpos = 2*pos + 1
+
+        # The leaf at pos is empty now.  Put newitem there, and bubble it up
+        # to its final resting place (by sifting its parents down).
+        self.heap[pos] = newitem
+        self._siftdown(startpos, pos)
+
+    def _siftdown(self, startpos, pos):
+        newitem = self.heap[pos]
+        # Follow the path to the root, moving parents down until finding a place
+        # newitem fits.
+        while pos > startpos:
+            parentpos = (pos - 1) >> 1
+            parent = self.heap[parentpos]
+            if newitem < parent:
+                self.heap[pos] = parent
+                pos = parentpos
+                continue
+            break
+        self.heap[pos] = newitem
+
+    def replace(self, item):
+        returnitem = self.heap[0]    # raises appropriate IndexError if heap is empty
+        self.heap[0] = item
+        self._siftup(0)
+        return returnitem
+
+    def clear(self):
+        self.heap = []
+
+    def get_heap(self):
+        return self.heap
+
+class MaxHeap(Heap):
+    def __init__(self):
+        self.heap = []
+
+    def push(self, item):
+        self.heap.append(item)
+        self._siftdown(0, len(self.heap)-1)
+
+    def pop(self):
+        lastelt = self.heap.pop()    # raises appropriate IndexError if heap is empty
+        if self.heap:
+            returnitem = self.heap[0]
+            self.heap[0] = lastelt
+            self._siftup(0)
+            return returnitem
+        return lastelt
+
+    def _siftup(self):
+        endpos = len(self.heap)
+        startpos = pos
+        newitem = self.heap[pos]
+        childpos = 2*pos + 1    # leftmost child position
+
+        # Bubble up the larger child until hitting a leaf.
+        while childpos < endpos:
+            # Set childpos to index of larger child.
+            rightpos = childpos + 1
+            if rightpos < endpos and not self.heap[rightpos] < self.heap[childpos]:
+                childpos = rightpos
+
+            # Move the larger child up.
+            self.heap[pos] = self.heap[childpos]
+            pos = childpos
+            childpos = 2*pos + 1
+
+        # The leaf at pos is empty now.  Put newitem there, and bubble it up
+        # to its final resting place (by sifting its parents down).
+        self.heap[pos] = newitem
+        self._siftdown(startpos, pos)
+
+    def _siftdown(self, startpos, pos):
+        newitem = self.heap[pos]
+        # Follow the path to the root, moving parents down until finding a place
+        # newitem fits.
+        while pos > startpos:
+            parentpos = (pos - 1) >> 1
+            parent = self.heap[parentpos]
+            if parent < newitem:
+                self.heap[pos] = parent
+                pos = parentpos
+                continue
+            break
+        self.heap[pos] = newitem
+
+    def replace(self, item):
+        returnitem = self.heap[0]    # raises appropriate IndexError if heap is empty
+        self.heap[0] = item
+        self._siftup(0)
+        return returnitem
+
+    def clear(self):
+        self.heap = []
+
+    def get_heap(self):
+        return self.heap
+    
+class MinMaxHeap(Heap):
+    def __init__(self):
+        self.heap = []
+
+    def push(self):
+        pass
+
+    def pop_min(self):
+        pass
+
+    def pop_max(self):
+        pass
+
+    def _siftup(self):
+        pass
+
+    def _siftup_min(self):
+        pass
+
+    def _siftup_max(self):
+        pass
+
+    def _siftdown(self):
+        pass
+
+    def _siftdown_min(self):
+        pass
+
+    def _siftdown_max(self):
+        pass
+
+    def replace_min(self):
+        pass  
+
+    def replace_max(self):
+        pass
+
+    def clear(self):
+        self.heap = []
+
+    def get_heap(self):
+        return self.heap
+    
 class HeapType(Enum):
     MAXHEAP = -1,
     MINHEAP = 1,   
