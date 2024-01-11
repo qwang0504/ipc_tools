@@ -1,6 +1,6 @@
 from multiprocessing import RawArray
 from enum import Enum
-from typing import Tuple
+from typing import Tuple, List
 
 class HeapType(Enum):
     MAXHEAP = -1,
@@ -27,6 +27,12 @@ class NormalHeap:
             self.pushpop = self._pushpop_max
         else:
             raise ValueError('Unknown heap type')
+
+    def get_heap_array(self) -> List:
+        return self.heap
+
+    def clear(self):
+        self.heap = []
 
     def _push_min(self, item):
         """Push item onto heap, maintaining the heap invariant."""
@@ -190,6 +196,12 @@ class SharedHeap:
             self.pushpop = self._pushpop_max
         else:
             raise ValueError('Unknown heap type')
+
+    def get_heap_array(self) -> RawArray:
+        return self.heap
+
+    def clear(self):
+        self.numel = 0
 
     def _push_min(self, item): 
         """Push item onto heap, maintaining the heap invariant."""
@@ -367,6 +379,16 @@ class SharedHeapTuple:
         else:
             raise ValueError('Unknown heap type')
 
+    def get_heap_array(self) -> RawArray:
+        return self.heap
+    
+    def get_tuple_elements(self, key: int = 0) -> List:
+        selection = [self.heap[i*self.tuplen+key] for i in range(self.numel)]
+        return selection
+    
+    def clear(self):
+        self.numel = 0
+    
     def _push_min(self, item: Tuple) -> None:
         """Push item onto heap, maintaining the heap invariant."""
         self.heap[self.numel*self.tuplen:(self.numel+1)*self.tuplen] = item
