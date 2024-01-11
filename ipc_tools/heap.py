@@ -2,12 +2,6 @@ from multiprocessing import RawArray
 from typing import Tuple, List
 from abc import ABC
 
-from enum import Enum
-class HeapType(Enum):
-    MAXHEAP = 1
-    MINHEAP = -1
-
-
 def is_even(k):
     return (k & 1) == 0
 
@@ -603,7 +597,7 @@ class SharedMinHeapTuple:
 
     def push(self, item: Tuple) -> None:
         self.heap[self.numel*self.tuplen:(self.numel+1)*self.tuplen] = item
-        self._siftdown_min(0, self.numel*self.tuplen)
+        self._siftdown(0, self.numel*self.tuplen)
         self.numel += 1
 
     def pop(self) -> Tuple:
