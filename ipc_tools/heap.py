@@ -206,6 +206,7 @@ class SharedHeap:
         """Pop the smallest item off the heap, maintaining the heap invariant."""
         self.numel -= 1
         if self.numel < 0:
+            self.numel = 0
             raise IndexError('pop from empty heap') 
         lastelt = self.heap[self.numel]    
         if self.numel > 0:
@@ -219,6 +220,7 @@ class SharedHeap:
         """Maxheap version of a heappop."""
         self.numel -= 1
         if self.numel < 0:
+            self.numel = 0
             raise IndexError('pop from empty heap') 
         lastelt = self.heap[self.numel]    
         if self.numel > 0:
@@ -381,6 +383,7 @@ class SharedHeapTuple:
         """Pop the smallest item off the heap, maintaining the heap invariant."""
         self.numel -= 1
         if self.numel < 0:
+            self.numel = 0
             raise IndexError('pop from empty heap') 
         lastelt = tuple(self.heap[self.numel*self.tuplen:(self.numel+1)*self.tuplen])    
         if self.numel > 0:
@@ -394,6 +397,7 @@ class SharedHeapTuple:
         """Maxheap version of a heappop."""
         self.numel -= 1
         if self.numel < 0:
+            self.numel = 0
             raise IndexError('pop from empty heap') 
         lastelt = tuple(self.heap[self.numel*self.tuplen:(self.numel+1)*self.tuplen])    
         if self.numel > 0:
