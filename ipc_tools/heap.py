@@ -1,7 +1,12 @@
 from multiprocessing import RawArray
-from enum import Enum
 from typing import Tuple, List
 from abc import ABC
+
+from enum import Enum
+class HeapType(Enum):
+    MAXHEAP = 1
+    MINHEAP = -1
+
 
 def is_even(k):
     return (k & 1) == 0
@@ -102,7 +107,7 @@ class MaxHeap(Heap):
             return returnitem
         return lastelt
 
-    def _siftup(self):
+    def _siftup(self, pos):
         endpos = len(self.heap)
         startpos = pos
         newitem = self.heap[pos]
@@ -171,7 +176,7 @@ class MinMaxHeap(Heap):
     def pop_max(self):
         size = len(self.heap)
         if size < 2:
-            return self.pop_min(self.heap)
+            return self.pop_min()
         val = self.heap[1]
         last = self.heap.pop()
         if size > 2:
