@@ -222,7 +222,7 @@ class PriorityQueueHeap(QueueLike):
         self.total_size =  self.item_num_element * self.num_items
         
         self.lock = RLock()
-        self.min_priority = SharedHeapTuple(
+        self.priority = SharedHeapTuple(
             self.num_items, 
             tuplen=2, 
             sortkey=0, 
@@ -286,14 +286,14 @@ class PriorityQueueHeap(QueueLike):
                     self.data, 
                     dtype = self.element_type, 
                     count = self.item_num_element,
-                    offset = element_location # offset should be in bytes
+                    offset = int(element_location) # offset should be in bytes
                 ).copy()
             else:
                 element = np.frombuffer(
                     self.data, 
                     dtype = self.element_type, 
                     count = self.item_num_element,
-                    offset = element_location # offset should be in bytes
+                    offset = int(element_location) # offset should be in bytes
                 )
             self.priority.push((PRIORITY_EMPTY, element_location))
 
@@ -319,7 +319,7 @@ class PriorityQueueHeap(QueueLike):
                 self.data, 
                 dtype = self.element_type, 
                 count = self.item_num_element,
-                offset = element_location # offset should be in bytes
+                offset = int(element_location) # offset should be in bytes
             )
 
             # if the buffer is full, overwrite the next block
@@ -337,7 +337,8 @@ class PriorityQueueHeap(QueueLike):
 
     def full(self):
         ''' check if buffer is full '''
-        for item in self.priority:
+        priorities = self.priority.get_tuple_elements(0)
+        for item in priorities:
             if item == PRIORITY_EMPTY: 
                 return False
         return True
@@ -346,46 +347,54 @@ class PriorityQueueHeap(QueueLike):
         ''' check if buffer is empty '''
 
         # this may be inefficient
-        for item in self.priority:
+        priorities = self.priority.get_tuple_elements(0)
+        for item in priorities:
             if item != PRIORITY_EMPTY: 
                 return False
         return True
 
     def qsize(self):
         ''' Return number of items currently stored in the buffer '''
-        return len([p for p in self.priority if p != PRIORITY_EMPTY])
+        priorities = self.priority.get_tuple_elements(0)
+        return len([p for p in priorities if p != PRIORITY_EMPTY])
     
     def close(self):
         pass
 
     def clear(self):
         '''clear the buffer'''
-        self.priority = RawArray('I', [PRIORITY_EMPTY for i in range(self.num_items)])
+        self.priority.clear()
+        locations = range(0, self.element_byte_size*self.total_size, self.element_byte_size*self.item_num_element)
+        initial_priorities = [PRIORITY_EMPTY for i in locations]
+        for tup in zip(initial_priorities, locations):
+            self.priority.push(tup)
 
     def view_data(self):
-
         stored_data = np.array([])
-        for element_index, element_priority  in enumerate(self.priority):
+        priorities = self.priority.get_tuple_elements(0)
+        locations = self.priority.get_tuple_elements(1)
+        for element_priority, element_location  in zip(priorities, locations):
             if element_priority != PRIORITY_EMPTY:
-                location = self.element_location[element_index]
                 stored_element = np.frombuffer(                
                     self.data, 
                     dtype = self.element_type, 
                     count = self.item_num_element,
-                    offset = location # offset should be in bytes
+                    offset = int(element_location) # offset should be in bytes
                 )
                 stored_data = np.hstack((stored_data, stored_element))
 
         return stored_data
     
     def __str__(self):
-        
+
+        priorities = self.priority.get_tuple_elements(0)
+        locations = self.priority.get_tuple_elements(1)
         reprstr = (
             f'capacity: {self.num_items}\n' +
             f'item shape: {self.item_shape}\n' +
             f'data type: {self.element_type}\n' +
             f'size: {self.qsize()}\n' +
-            f'priority, location: {[(p,l) for (p,l) in zip(self.priority, self.element_location) if p != PRIORITY_EMPTY]}\n' + 
+            f'priority, location: {[(p,l) for (p,l) in zip(priorities, locations) if p != PRIORITY_EMPTY]}\n' + 
             f'lost item: {self.num_lost_item.value}\n' +
             f'buffer: {self.data}\n' + 
             f'{self.view_data()}\n'
