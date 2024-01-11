@@ -1,5 +1,6 @@
 from multiprocessing import RawArray
 from enum import Enum
+from typing import Tuple
 
 class HeapType(Enum):
     MAXHEAP = -1,
@@ -190,7 +191,7 @@ class SharedHeap:
         else:
             raise ValueError('Unknown heap type')
 
-    def _push_min(self, item):
+    def _push_min(self, item): 
         """Push item onto heap, maintaining the heap invariant."""
         self.heap[self.numel] = item
         self._siftdown_min(0, self.numel)
@@ -335,7 +336,6 @@ class SharedHeap:
     def __str__(self):
         return str(list(self.heap[:self.numel]))
 
-from typing import Tuple
 class SharedHeapTuple:
     def __init__(
             self, 
@@ -444,7 +444,7 @@ class SharedHeapTuple:
         # Follow the path to the root, moving parents down until finding a place
         # newitem fits.
         while pos > startpos:
-            parentpos = (pos//self.tuplen - 1) >> 1
+            parentpos = ((pos//self.tuplen - 1) >> 1)*self.tuplen 
             parent = tuple(self.heap[parentpos:parentpos+self.tuplen])
             if newitem[self.sortkey] < parent[self.sortkey]:
                 self.heap[pos:pos+self.tuplen] = parent
@@ -459,7 +459,7 @@ class SharedHeapTuple:
         # Follow the path to the root, moving parents down until finding a place
         # newitem fits.
         while pos > startpos:
-            parentpos = (pos//self.tuplen - 1) >> 1
+            parentpos = ((pos//self.tuplen - 1) >> 1)*self.tuplen 
             parent = tuple(self.heap[parentpos:parentpos+self.tuplen])
             if parent[self.sortkey] < newitem[self.sortkey]:
                 self.heap[pos:pos+self.tuplen] = parent
