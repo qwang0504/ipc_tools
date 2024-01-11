@@ -461,7 +461,7 @@ class SharedHeapTuple:
         while pos > startpos:
             parentpos = (pos//self.tuplen - 1) >> 1
             parent = tuple(self.heap[parentpos:parentpos+self.tuplen])
-            if parent < newitem:
+            if parent[self.sortkey] < newitem[self.sortkey]:
                 self.heap[pos:pos+self.tuplen] = parent
                 pos = parentpos
                 continue
