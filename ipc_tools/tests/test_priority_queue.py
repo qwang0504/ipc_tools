@@ -35,11 +35,14 @@ def consumer_cv(buf: MonitoredQueue, stop: Event):
     start = time.time()
     count = 0
     while not stop.is_set():
-        array = buf.get(timeout=2)
-        if array is not None:
-            count += 1
-            cv2.imshow('display',array)
-            cv2.waitKey(1)
+        try:
+            array = buf.get(timeout=2)
+            if array is not None:
+                count += 1
+                cv2.imshow('display',array)
+                cv2.waitKey(1)
+        except Empty:
+            pass
     elapsed = time.time() - start
     cv2.destroyAllWindows()
     print((elapsed,count/elapsed))
@@ -163,11 +166,14 @@ def consumer_cv(buf: MonitoredQueue, stop: Event):
     start = time.time()
     count = 0
     while not stop.is_set():
-        array = buf.get(timeout=2)
-        if array is not None:
-            count += 1
-            cv2.imshow('display',array)
-            cv2.waitKey(1)
+        try:
+            array = buf.get(timeout=2)
+            if array is not None:
+                count += 1
+                cv2.imshow('display',array)
+                cv2.waitKey(1)
+        except Empty:
+            pass
     elapsed = time.time() - start
     cv2.destroyAllWindows()
     print((elapsed,count/elapsed))
@@ -252,3 +258,5 @@ p1.terminate()
 
 print(f'Freq in, freq out: {buffer.get_average_freq()}') 
 print(f'Num item lost: {buffer.queue.num_lost_item.value}')
+# Damn this is still quite variable, what's going on ?
+# maybe those functions to test if the Queue is empty or full ?
