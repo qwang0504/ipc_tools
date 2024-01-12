@@ -237,12 +237,12 @@ class PriorityQueueHeap(QueueLike):
     
     def get_lowest_priority(self) -> int:
         '''return index of lowest priority item'''
-        _, location = self.priority._pop_min()
+        _, location = self.priority.pop_min()
         return location
 
-    def get_highest_priority(self) -> Tuple[int, int]:
+    def get_highest_priority(self) -> int:
         '''return index of highest priority item'''
-        _, location = self.priority._pop_max()
+        _, location = self.priority.pop_max()
         return location
         
     def get(self, block: bool = True, timeout: Optional[float] = None) -> Optional[NDArray]:
