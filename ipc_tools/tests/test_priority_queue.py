@@ -272,7 +272,8 @@ def test_perf_pqueue():
     Q = PriorityQueue(        
             num_items = 1000, 
             item_shape = SZ,
-            data_type = np.uint8
+            data_type = np.uint8,
+            t_refresh=0.0000001
         )
     
     for i in range(500):
@@ -286,7 +287,8 @@ def test_perf_pqueue_heap():
     Q = PriorityQueueHeap(        
             num_items = 1000, 
             item_shape = SZ,
-            data_type = np.uint8
+            data_type = np.uint8,
+            t_refresh=0.0000001
         )
     
     for i in range(500):
@@ -300,7 +302,8 @@ def test_perf_pqueue_mp():
     Q = PriorityQueue(        
             num_items = 1000, 
             item_shape = SZ,
-            data_type = np.uint8
+            data_type = np.uint8,
+            t_refresh=0.0000001
         )
 
     buffer = MonitoredQueue(Q)
@@ -325,7 +328,8 @@ def test_perf_pqueue_heap_mp():
     Q = PriorityQueueHeap(        
             num_items = 1000, 
             item_shape = SZ,
-            data_type = np.uint8
+            data_type = np.uint8,
+            t_refresh=0.0000001
         )
 
     buffer = MonitoredQueue(Q)
