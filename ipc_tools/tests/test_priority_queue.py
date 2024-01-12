@@ -265,8 +265,38 @@ print(f'Num item lost: {buffer.queue.num_lost_item.value}')
 import cProfile
 import pstats
 from pstats import SortKey
+from random import randrange
+
 
 def test_perf_pqueue():
+    Q = PriorityQueue(        
+            num_items = 1000, 
+            item_shape = SZ,
+            data_type = np.uint8
+        )
+    
+    for i in range(500):
+        Q.put((i,BIGARRAY))
+
+    for i in range(10000):
+        Q.put((randrange(1000),BIGARRAY))
+        Q.get()
+
+def test_perf_pqueue_heap():
+    Q = PriorityQueueHeap(        
+            num_items = 1000, 
+            item_shape = SZ,
+            data_type = np.uint8
+        )
+    
+    for i in range(500):
+        Q.put((i,BIGARRAY))
+
+    for i in range(10000):
+        Q.put((randrange(1000),BIGARRAY))
+        Q.get()
+
+def test_perf_pqueue_mp():
     Q = PriorityQueue(        
             num_items = 1000, 
             item_shape = SZ,
@@ -290,7 +320,7 @@ def test_perf_pqueue():
     p0.terminate()
     p1.terminate()
 
-def test_perf_pqueue_heap():
+def test_perf_pqueue_heap_mp():
 
     Q = PriorityQueueHeap(        
             num_items = 1000, 
@@ -320,11 +350,19 @@ with cProfile.Profile() as pr:
         test_perf_pqueue()
     sortby = SortKey.TIME
     ps = pstats.Stats(pr).sort_stats(sortby)
-    ps.print_stats(10)
+    ps.print_stats(30)
+
+    sortby = SortKey.CUMULATIVE
+    ps = pstats.Stats(pr).sort_stats(sortby)
+    ps.print_stats(30)
 
 with cProfile.Profile() as pr:
     for i in range(10):
         test_perf_pqueue_heap()
     sortby = SortKey.TIME
     ps = pstats.Stats(pr).sort_stats(sortby)
-    ps.print_stats(10)
+    ps.print_stats(30)
+
+    sortby = SortKey.CUMULATIVE
+    ps = pstats.Stats(pr).sort_stats(sortby)
+    ps.print_stats(30)
