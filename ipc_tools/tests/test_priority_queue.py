@@ -260,3 +260,71 @@ print(f'Freq in, freq out: {buffer.get_average_freq()}')
 print(f'Num item lost: {buffer.queue.num_lost_item.value}')
 # Damn this is still quite variable, what's going on ?
 # maybe those functions to test if the Queue is empty or full ?
+
+###
+import cProfile
+import pstats
+from pstats import SortKey
+
+def test_perf_pqueue():
+    Q = PriorityQueue(        
+            num_items = 100, 
+            item_shape = SZ,
+            data_type = np.uint8
+        )
+
+    buffer = MonitoredQueue(Q)
+
+    stop = Event()
+
+    p0 = Process(target=producer_fast,args=(buffer,stop))
+    p1 = Process(target=consumer_fast,args=(buffer,stop))
+
+    p0.start()
+    p1.start()
+
+    time.sleep(4)
+    stop.set()
+    time.sleep(4)
+
+    p0.terminate()
+    p1.terminate()
+
+def test_perf_pqueue_heap():
+
+    Q = PriorityQueueHeap(        
+            num_items = 100, 
+            item_shape = SZ,
+            data_type = np.uint8
+        )
+
+    buffer = MonitoredQueue(Q)
+
+    stop = Event()
+
+    p0 = Process(target=producer_fast,args=(buffer,stop))
+    p1 = Process(target=consumer_fast,args=(buffer,stop))
+
+    p0.start()
+    p1.start()
+
+    time.sleep(4)
+    stop.set()
+    time.sleep(4)
+
+    p0.terminate()
+    p1.terminate()
+
+with cProfile.Profile() as pr:
+    for i in range(10):
+        test_perf_pqueue()
+    sortby = SortKey.TIME
+    ps = pstats.Stats(pr).sort_stats(sortby)
+    ps.print_stats(10)
+
+with cProfile.Profile() as pr:
+    for i in range(10):
+        test_perf_pqueue_heap()
+    sortby = SortKey.TIME
+    ps = pstats.Stats(pr).sort_stats(sortby)
+    ps.print_stats(10)
