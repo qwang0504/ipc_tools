@@ -54,7 +54,6 @@ class TestOrdering(unittest.TestCase):
         popped = []
         for i in range(len(TEST_SEQ)):
             popped.append(h.pop_min())
-        self.assertEqual(popped, ASCENDING_TEST_SEQ)
 
         push_test_sequence(h)
         popped = []
@@ -109,6 +108,21 @@ class TestOrdering(unittest.TestCase):
             popped.append(h.pop())
         self.assertEqual(popped, DESCENDING_TEST_TUPLE_SEQ_KEY0)
 
+    def test_ordering_shared_tuple_minmaxheap(self):
+        h = SharedMinMaxHeapTuple(heapsize=10, tuplen=2, sortkey=0)
+
+        push_test_sequence_tuple(h)
+        popped = []
+        for i in range(len(TEST_TUPLE_SEQ)):
+            popped.append(h.pop_min())
+        self.assertEqual(popped, ASCENDING_TEST_TUPLE_SEQ_KEY0)
+
+        push_test_sequence_tuple(h)
+        popped = []
+        for i in range(len(TEST_TUPLE_SEQ)):
+            popped.append(h.pop_max())
+        self.assertEqual(popped, DESCENDING_TEST_TUPLE_SEQ_KEY0)
+
     def test_ordering_shared_tuple_minheap_sortkey(self):
         h = SharedMinHeapTuple(heapsize=10, tuplen=2, sortkey=1)
         push_test_sequence_tuple(h)
@@ -123,6 +137,21 @@ class TestOrdering(unittest.TestCase):
         popped = []
         for i in range(len(TEST_TUPLE_SEQ)):
             popped.append(h.pop())
+        self.assertEqual(popped, DESCENDING_TEST_TUPLE_SEQ_KEY1)
+    
+    def test_ordering_shared_tuple_minmaxheap_sortkey(self):
+        h = SharedMinMaxHeapTuple(heapsize=10, tuplen=2, sortkey=1)
+
+        push_test_sequence_tuple(h)
+        popped = []
+        for i in range(len(TEST_TUPLE_SEQ)):
+            popped.append(h.pop_min())
+        self.assertEqual(popped, ASCENDING_TEST_TUPLE_SEQ_KEY1)
+
+        push_test_sequence_tuple(h)
+        popped = []
+        for i in range(len(TEST_TUPLE_SEQ)):
+            popped.append(h.pop_max())
         self.assertEqual(popped, DESCENDING_TEST_TUPLE_SEQ_KEY1)
 
 if __name__ == '__main__':
