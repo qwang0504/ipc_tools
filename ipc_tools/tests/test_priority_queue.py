@@ -268,7 +268,7 @@ from pstats import SortKey
 
 def test_perf_pqueue():
     Q = PriorityQueue(        
-            num_items = 100, 
+            num_items = 1000, 
             item_shape = SZ,
             data_type = np.uint8
         )
@@ -293,7 +293,7 @@ def test_perf_pqueue():
 def test_perf_pqueue_heap():
 
     Q = PriorityQueueHeap(        
-            num_items = 100, 
+            num_items = 1000, 
             item_shape = SZ,
             data_type = np.uint8
         )
