@@ -806,7 +806,7 @@ class SharedMinMaxHeapTuple(Heap):
         self.numel -= 1
         returnitem = self.heap[1]
         lastelt = self.heap[self.numel]    
-        if self.numel > 2:
+        if self.numel >= 2:
             self.heap[1] = lastelt
             self._siftdown(1)
         return returnitem
