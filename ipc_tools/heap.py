@@ -808,7 +808,7 @@ class SharedMinMaxHeapTuple(Heap):
         lastelt = tuple(self.heap[self.numel*self.tuplen:(self.numel+1)*self.tuplen])    
         if self.numel >= 2:
             self.heap[1*self.tuplen:1*self.tuplen+self.tuplen] = lastelt
-            self._siftdown(1)
+            self._siftdown(1*self.tuplen)
         return returnitem
 
     def _siftup(self, pos):
@@ -857,9 +857,9 @@ class SharedMinMaxHeapTuple(Heap):
         while pos//self.tuplen > 1:
 
             if (pos//self.tuplen & 3) == 3:
-                parentpos = pos//self.tuplen >> 1  
+                parentpos = (pos//self.tuplen >> 1)*self.tuplen  
             else:
-                parentpos = (pos//self.tuplen >> 1) - 1
+                parentpos = ((pos//self.tuplen >> 1) - 1)*self.tuplen
             parent = tuple(self.heap[parentpos:parentpos+self.tuplen])
 
             if parent[self.sortkey] >= val[self.sortkey]:
