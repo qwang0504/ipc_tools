@@ -40,6 +40,7 @@ class PriorityQueue(QueueLike):
         self.priority = RawArray('I', [PRIORITY_EMPTY for i in range(self.num_items)])
         self.element_location = RawArray('I', range(0, self.element_byte_size*self.total_size, self.element_byte_size*self.item_num_element))
         self.num_lost_item = RawValue('I',0)
+        self.num_elem = RawValue('I',0)
         self.data = RawArray(self.element_type.char, self.total_size) 
     
     def get_lowest_priority(self) -> Tuple[int, int]:
@@ -102,6 +103,7 @@ class PriorityQueue(QueueLike):
                     offset = element_location # offset should be in bytes
                 )
             self.priority[element_index] = PRIORITY_EMPTY
+            self.num_elem.value -= 1
 
         return element.reshape(self.item_shape)
     
@@ -138,28 +140,28 @@ class PriorityQueue(QueueLike):
             # update write cursor value
             self.priority[element_index] = priority
 
+            self.num_elem.value += 1
+
         # this seems to be necessary to give time to consumers to get the lock 
         time.sleep(self.t_refresh)
 
     def full(self):
         ''' check if buffer is full '''
-        for item in self.priority:
-            if item == PRIORITY_EMPTY: 
-                return False
-        return True
+        if self.num_elem.value == self.num_items-1:
+            return True
+        else:
+            return False
     
     def empty(self):
         ''' check if buffer is empty '''
-
-        # this may be inefficient
-        for item in self.priority:
-            if item != PRIORITY_EMPTY: 
-                return False
-        return True
+        if self.num_elem.value == 0:
+            return True
+        else:
+            return False
 
     def qsize(self):
         ''' Return number of items currently stored in the buffer '''
-        return len([p for p in self.priority if p != PRIORITY_EMPTY])
+        return self.num_elem.value
     
     def close(self):
         pass
@@ -233,6 +235,7 @@ class PriorityQueueHeap(QueueLike):
             self.priority.push(tup)
 
         self.num_lost_item = RawValue('I',0)
+        self.num_elem = RawValue('I',0)
         self.data = RawArray(self.element_type.char, self.total_size) 
     
     def get_lowest_priority(self) -> int:
@@ -295,6 +298,8 @@ class PriorityQueueHeap(QueueLike):
                     offset = int(element_location) # offset should be in bytes
                 )
             self.priority.push((PRIORITY_EMPTY, element_location))
+            
+            self.num_elem.value -= 1
 
         return element.reshape(self.item_shape)
     
@@ -331,31 +336,28 @@ class PriorityQueueHeap(QueueLike):
             # update write cursor value
             self.priority.push((priority, element_location))
 
+            self.num_elem.value += 1
+
         # this seems to be necessary to give time to consumers to get the lock 
         time.sleep(self.t_refresh)
 
     def full(self):
         ''' check if buffer is full '''
-        priorities = self.priority.get_tuple_elements(0)
-        for item in priorities:
-            if item == PRIORITY_EMPTY: 
-                return False
-        return True
+        if self.num_elem.value == self.num_items-1:
+            return True
+        else:
+            return False
     
     def empty(self):
         ''' check if buffer is empty '''
-
-        # this may be inefficient
-        priorities = self.priority.get_tuple_elements(0)
-        for item in priorities:
-            if item != PRIORITY_EMPTY: 
-                return False
-        return True
+        if self.num_elem.value == 0:
+            return True
+        else:
+            return False
 
     def qsize(self):
         ''' Return number of items currently stored in the buffer '''
-        priorities = self.priority.get_tuple_elements(0)
-        return len([p for p in priorities if p != PRIORITY_EMPTY])
+        return self.num_elem.value
     
     def close(self):
         pass
