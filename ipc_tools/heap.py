@@ -933,7 +933,7 @@ class SharedMinMaxHeapTuple(Heap):
             return self.replace_min(item)
         val = self.heap[1*self.tuplen:1*self.tuplen+self.tuplen]
         self.heap[1*self.tuplen:1*self.tuplen+self.tuplen] = item
-        self._siftdown(1)
+        self._siftdown(1*self.tuplen)
         return val
 
     def clear(self):
