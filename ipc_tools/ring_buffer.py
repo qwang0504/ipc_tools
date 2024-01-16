@@ -7,7 +7,6 @@ import time
 from queue import Empty
 
 # TODO make a buffer that blocks instead of overflowing 
-# TODO try custom dtype, see for instance https://vispy.org/gallery/gloo/rotate_cube.html#sphx-glr-gallery-gloo-rotate-cube-py
 
 class RingBuffer(QueueLike):
     '''
