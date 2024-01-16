@@ -7,6 +7,8 @@ import time
 from queue import Empty
 
 # TODO make a buffer that blocks instead of overflowing 
+# TODO write an Object abstract class with a serialization to
+# numpy array function
 
 class RingBuffer(QueueLike):
     '''
