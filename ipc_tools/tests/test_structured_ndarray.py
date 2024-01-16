@@ -31,8 +31,4 @@ buf_s = RingBuffer(
 )
 
 buf_s.put(x)
-
 res = buf_s.get()
-
-buf_s.put(x)
-buf_s.put(x)
