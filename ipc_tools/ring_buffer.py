@@ -41,7 +41,7 @@ class RingBuffer(QueueLike):
         self.read_cursor = RawValue('I',0)
         self.write_cursor = RawValue('I',0)
         self.num_lost_item = RawValue('I',0)
-        self.data = RawArray(self.element_type.char, self.total_size) 
+        self.data = RawArray('B', self.total_size*self.element_byte_size) 
         
     def get(self, block: bool = True, timeout: Optional[float] = None) -> Optional[NDArray]:
         '''return buffer to the current read location'''
