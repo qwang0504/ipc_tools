@@ -34,6 +34,5 @@ class Tests(unittest.TestCase):
         self.assertEqual(TS, res['timestamp'])
         self.assertTrue(np.allclose(res['image'], x['image']))
 
-
 if __name__ == '__main__':
     unittest.main()
