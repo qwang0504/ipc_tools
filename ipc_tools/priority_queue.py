@@ -41,7 +41,7 @@ class PriorityQueue(QueueLike):
         self.element_location = RawArray('I', range(0, self.element_byte_size*self.total_size, self.element_byte_size*self.item_num_element))
         self.num_lost_item = RawValue('I',0)
         self.num_elem = RawValue('I',0)
-        self.data = RawArray(self.element_type.char, self.total_size) 
+        self.data = RawArray('B', self.total_size*self.element_byte_size) 
     
     def get_lowest_priority(self) -> Tuple[int, int]:
         '''return index of lowest priority item'''
@@ -236,7 +236,7 @@ class PriorityQueueHeap(QueueLike):
 
         self.num_lost_item = RawValue('I',0)
         self.num_elem = RawValue('I',0)
-        self.data = RawArray(self.element_type.char, self.total_size) 
+        self.data = RawArray('B', self.total_size*self.element_byte_size) 
     
     def get_lowest_priority(self) -> int:
         '''return index of lowest priority item'''
