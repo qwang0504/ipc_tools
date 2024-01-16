@@ -44,8 +44,8 @@ class Tests(unittest.TestCase):
         Array_0 = np.random.uniform(low=-1, high=1, size=SZ).astype(np.float32)
         Array_1 = np.random.uniform(low=-1, high=1, size=SZ).astype(np.float32)
 
-        x0 = np.array([(TS, Array_0)], dtype=dt)
-        x1 = np.array([(TS, Array_1)], dtype=dt)
+        x0 = np.array([(TS, Array_0)], dtype=dt) 
+        x1 = np.array((TS, Array_1), dtype=dt) # no need for [] if only one element
         buf = RingBuffer(
             num_items=100,
             item_shape=(1,),
