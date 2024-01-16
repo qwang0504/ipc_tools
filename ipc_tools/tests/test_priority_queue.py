@@ -35,11 +35,14 @@ def consumer_cv(buf: MonitoredQueue, stop: Event):
     start = time.time()
     count = 0
     while not stop.is_set():
-        array = buf.get(timeout=2)
-        if array is not None:
-            count += 1
-            cv2.imshow('display',array)
-            cv2.waitKey(1)
+        try:
+            array = buf.get(timeout=2)
+            if array is not None:
+                count += 1
+                cv2.imshow('display',array)
+                cv2.waitKey(1)
+        except Empty:
+            pass
     elapsed = time.time() - start
     cv2.destroyAllWindows()
     print((elapsed,count/elapsed))
@@ -163,11 +166,14 @@ def consumer_cv(buf: MonitoredQueue, stop: Event):
     start = time.time()
     count = 0
     while not stop.is_set():
-        array = buf.get(timeout=2)
-        if array is not None:
-            count += 1
-            cv2.imshow('display',array)
-            cv2.waitKey(1)
+        try:
+            array = buf.get(timeout=2)
+            if array is not None:
+                count += 1
+                cv2.imshow('display',array)
+                cv2.waitKey(1)
+        except Empty:
+            pass
     elapsed = time.time() - start
     cv2.destroyAllWindows()
     print((elapsed,count/elapsed))
@@ -252,3 +258,115 @@ p1.terminate()
 
 print(f'Freq in, freq out: {buffer.get_average_freq()}') 
 print(f'Num item lost: {buffer.queue.num_lost_item.value}')
+# Damn this is still quite variable, what's going on ?
+# maybe those functions to test if the Queue is empty or full ?
+
+###
+import cProfile
+import pstats
+from pstats import SortKey
+from random import randrange
+
+
+def test_perf_pqueue():
+    Q = PriorityQueue(        
+            num_items = 1000, 
+            item_shape = SZ,
+            data_type = np.uint8,
+            t_refresh=0.0000001
+        )
+    
+    for i in range(500):
+        Q.put((i,BIGARRAY))
+
+    for i in range(10000):
+        Q.put((randrange(1000),BIGARRAY))
+        Q.get()
+
+def test_perf_pqueue_heap():
+    Q = PriorityQueueHeap(        
+            num_items = 1000, 
+            item_shape = SZ,
+            data_type = np.uint8,
+            t_refresh=0.0000001
+        )
+    
+    for i in range(500):
+        Q.put((i,BIGARRAY))
+
+    for i in range(10000):
+        Q.put((randrange(1000),BIGARRAY))
+        Q.get()
+
+def test_perf_pqueue_mp():
+    Q = PriorityQueue(        
+            num_items = 1000, 
+            item_shape = SZ,
+            data_type = np.uint8,
+            t_refresh=0.0000001
+        )
+
+    buffer = MonitoredQueue(Q)
+
+    stop = Event()
+
+    p0 = Process(target=producer_fast,args=(buffer,stop))
+    p1 = Process(target=consumer_fast,args=(buffer,stop))
+
+    p0.start()
+    p1.start()
+
+    time.sleep(4)
+    stop.set()
+    time.sleep(4)
+
+    p0.terminate()
+    p1.terminate()
+
+def test_perf_pqueue_heap_mp():
+
+    Q = PriorityQueueHeap(        
+            num_items = 1000, 
+            item_shape = SZ,
+            data_type = np.uint8,
+            t_refresh=0.0000001
+        )
+
+    buffer = MonitoredQueue(Q)
+
+    stop = Event()
+
+    p0 = Process(target=producer_fast,args=(buffer,stop))
+    p1 = Process(target=consumer_fast,args=(buffer,stop))
+
+    p0.start()
+    p1.start()
+
+    time.sleep(4)
+    stop.set()
+    time.sleep(4)
+
+    p0.terminate()
+    p1.terminate()
+
+with cProfile.Profile() as pr:
+    for i in range(10):
+        test_perf_pqueue()
+    sortby = SortKey.TIME
+    ps = pstats.Stats(pr).sort_stats(sortby)
+    ps.print_stats(30)
+
+    sortby = SortKey.CUMULATIVE
+    ps = pstats.Stats(pr).sort_stats(sortby)
+    ps.print_stats(30)
+
+with cProfile.Profile() as pr:
+    for i in range(10):
+        test_perf_pqueue_heap()
+    sortby = SortKey.TIME
+    ps = pstats.Stats(pr).sort_stats(sortby)
+    ps.print_stats(30)
+
+    sortby = SortKey.CUMULATIVE
+    ps = pstats.Stats(pr).sort_stats(sortby)
+    ps.print_stats(30)

@@ -180,10 +180,10 @@ class MinMaxHeap(Heap):
 
     def _siftup(self, pos):
         if is_even(pos):
-            sibling = pos - 1 if (pos & 3) == 0 else pos >> 1
-            if sibling > 0 and self.heap[sibling] < self.heap[pos]:
-                self.heap[sibling], self.heap[pos] = self.heap[pos], self.heap[sibling]
-                self._siftup_max(sibling)
+            siblingpos = pos - 1 if (pos & 3) == 0 else pos >> 1
+            if siblingpos > 0 and self.heap[siblingpos] < self.heap[pos]:
+                self.heap[siblingpos], self.heap[pos] = self.heap[pos], self.heap[siblingpos]
+                self._siftup_max(siblingpos)
             else:
                 self._siftup_min(pos)
         else:
@@ -470,17 +470,17 @@ class SharedMinMaxHeap(Heap):
         self.numel -= 1
         returnitem = self.heap[1]
         lastelt = self.heap[self.numel]    
-        if self.numel > 2:
+        if self.numel >= 2:
             self.heap[1] = lastelt
             self._siftdown(1)
         return returnitem
 
     def _siftup(self, pos):
         if is_even(pos):
-            sibling = pos - 1 if (pos & 3) == 0 else pos >> 1
-            if sibling > 0 and self.heap[sibling] < self.heap[pos]:
-                self.heap[sibling], self.heap[pos] = self.heap[pos], self.heap[sibling]
-                self._siftup_max(sibling)
+            siblingpos = pos - 1 if (pos & 3) == 0 else pos >> 1
+            if siblingpos > 0 and self.heap[siblingpos] < self.heap[pos]:
+                self.heap[siblingpos], self.heap[pos] = self.heap[pos], self.heap[siblingpos]
+                self._siftup_max(siblingpos)
             else:
                 self._siftup_min(pos)
         else:
@@ -782,8 +782,8 @@ class SharedMinMaxHeapTuple(Heap):
         self.numel = 0
 
     def push(self, item):
-        self.heap[self.numel] = item
-        self._siftup(self.numel)
+        self.heap[self.numel*self.tuplen:(self.numel+1)*self.tuplen] = item
+        self._siftup(self.numel*self.tuplen)
         self.numel += 1
         
     def pop_min(self):
@@ -792,10 +792,10 @@ class SharedMinMaxHeapTuple(Heap):
             self.numel = 0
             raise IndexError('pop from empty heap') 
       
-        returnitem = self.heap[0]
-        lastelt = self.heap[self.numel]   
+        returnitem = tuple(self.heap[0:self.tuplen])
+        lastelt = tuple(self.heap[self.numel*self.tuplen:(self.numel+1)*self.tuplen])
         if self.numel > 0:
-            self.heap[0] = lastelt
+            self.heap[0:self.tuplen] = lastelt
             self._siftdown(0)
         return returnitem
 
@@ -804,98 +804,136 @@ class SharedMinMaxHeapTuple(Heap):
             return self.pop_min()
         
         self.numel -= 1
-        returnitem = self.heap[1]
-        lastelt = self.heap[self.numel]    
-        if self.numel > 2:
-            self.heap[1] = lastelt
-            self._siftdown(1)
+        returnitem = tuple(self.heap[1*self.tuplen:1*self.tuplen+self.tuplen])
+        lastelt = tuple(self.heap[self.numel*self.tuplen:(self.numel+1)*self.tuplen])    
+        if self.numel >= 2:
+            self.heap[1*self.tuplen:1*self.tuplen+self.tuplen] = lastelt
+            self._siftdown(1*self.tuplen)
         return returnitem
 
     def _siftup(self, pos):
-        if is_even(pos):
-            sibling = pos - 1 if (pos & 3) == 0 else pos >> 1
-            if sibling > 0 and self.heap[sibling] < self.heap[pos]:
-                self.heap[sibling], self.heap[pos] = self.heap[pos], self.heap[sibling]
-                self._siftup_max(sibling)
+        if is_even(pos//self.tuplen):
+            
+            if (pos//self.tuplen & 3) == 0:
+                siblingpos = (pos//self.tuplen - 1)*self.tuplen  
+            else:
+                siblingpos = (pos//self.tuplen >> 1)*self.tuplen
+
+            if siblingpos//self.tuplen > 0:
+                sibling = tuple(self.heap[siblingpos:siblingpos+self.tuplen])
+                newitem = tuple(self.heap[pos:pos+self.tuplen])
+                if sibling[self.sortkey] < newitem[self.sortkey]:
+                    self.heap[siblingpos:siblingpos+self.tuplen], self.heap[pos:pos+self.tuplen] = self.heap[pos:pos+self.tuplen], self.heap[siblingpos:siblingpos+self.tuplen]
+                    self._siftup_max(siblingpos)
+                else:
+                    self._siftup_min(pos)
             else:
                 self._siftup_min(pos)
         else:
-            if self.heap[pos-1] > self.heap[pos]:
-                self.heap[pos-1], self.heap[pos] = self.heap[pos], self.heap[pos-1]
-                self._siftup_min(pos-1)
+            sibling = tuple(self.heap[pos-self.tuplen:pos])
+            newitem = tuple(self.heap[pos:pos+self.tuplen])
+            if sibling[self.sortkey] > newitem[self.sortkey]:
+                self.heap[pos-self.tuplen:pos], self.heap[pos:pos+self.tuplen] = self.heap[pos:pos+self.tuplen], self.heap[pos-self.tuplen:pos]
+                self._siftup_min(pos-self.tuplen)
             else:
                 self._siftup_max(pos)
 
     def _siftup_min(self, pos):
-        val = self.heap[pos]
-        while pos > 0:
-            parent = (pos >> 1) - 2 if (pos & 3) == 0 else (pos >> 1) - 1
-            if self.heap[parent] <= val:
+        val = tuple(self.heap[pos:pos+self.tuplen])
+        while pos//self.tuplen > 0:
+            if (pos//self.tuplen & 3) == 0:
+                parentpos = ((pos//self.tuplen >> 1) - 2)*self.tuplen  
+            else:
+                parentpos = ((pos//self.tuplen >> 1) - 1)*self.tuplen 
+            parent = self.heap[parentpos:parentpos+self.tuplen]
+            if parent[self.sortkey] <= val[self.sortkey]:
                 break
-            self.heap[pos] = self.heap[parent]
-            pos = parent
-        self.heap[pos] = val
+            self.heap[pos:pos+self.tuplen] = self.heap[parentpos:parentpos+self.tuplen]
+            pos = parentpos
+        self.heap[pos:pos+self.tuplen] = val
 
     def _siftup_max(self, pos):
-        val = self.heap[pos]
-        while pos > 1:
-            parent = pos >> 1 if (pos & 3) == 3 else (pos >> 1) - 1
-            if self.heap[parent] >= val:
+        val = tuple(self.heap[pos:pos+self.tuplen])
+        while pos//self.tuplen > 1:
+
+            if (pos//self.tuplen & 3) == 3:
+                parentpos = (pos//self.tuplen >> 1)*self.tuplen  
+            else:
+                parentpos = ((pos//self.tuplen >> 1) - 1)*self.tuplen
+            parent = tuple(self.heap[parentpos:parentpos+self.tuplen])
+
+            if parent[self.sortkey] >= val[self.sortkey]:
                 break
-            self.heap[pos] = self.heap[parent]
-            pos = parent
-        self.heap[pos] = val
+
+            self.heap[pos:pos+self.tuplen] = self.heap[parentpos:parentpos+self.tuplen]
+            pos = parentpos
+
+        self.heap[pos:pos+self.tuplen] = val
 
     def _siftdown(self, pos):
-        if is_even(pos):
+        if is_even(pos//self.tuplen):
             self._siftdown_min(pos)
         else:
             self._siftdown_max(pos)
 
     def _siftdown_min(self, pos):
-        if pos + 1 < self.numel and self.heap[pos] > self.heap[pos+1]:
-            self.heap[pos], self.heap[pos+1] = self.heap[pos+1], self.heap[pos]
+        if pos + 1 < self.numel: 
+            newitem = self.heap[pos:pos+self.tuplen]
+            sibling =  self.heap[pos+self.tuplen:pos+2*self.tuplen]
+            if newitem[self.sortkey] > sibling[self.sortkey]:
+                self.heap[pos:pos+self.tuplen], self.heap[pos+self.tuplen:pos+2*self.tuplen] = self.heap[pos+self.tuplen:pos+2*self.tuplen], self.heap[pos:pos+self.tuplen]
 
-        candidate, end = (pos + 1) << 1, min(self.numel, (pos + 3) << 1)
-        if candidate >= self.numel:
+        candidatepos, endpos = ((pos//self.tuplen + 1) << 1)*self.tuplen, min(self.numel, (pos//self.tuplen + 3) << 1)*self.tuplen
+        if candidatepos//self.tuplen >= self.numel:
             return
 
-        for i in range(candidate+1, end):
-            if self.heap[i] < self.heap[candidate]:
-                candidate = i
+        for i in range(candidatepos+self.tuplen, endpos, self.tuplen):
+            current = tuple(self.heap[i:i+self.tuplen]) 
+            candidate = tuple(self.heap[candidatepos:candidatepos+self.tuplen])
+            if current[self.sortkey] < candidate[self.sortkey]:
+                candidatepos = i
 
-        if self.heap[candidate] < self.heap[pos]:
-            self.heap[pos], self.heap[candidate] = self.heap[candidate], self.heap[pos]
-            self._siftdown(candidate)
+        candidate = self.heap[candidatepos:candidatepos+self.tuplen]
+        newitem = self.heap[pos:pos+self.tuplen]
+        if candidate[self.sortkey] < newitem[self.sortkey]:
+            self.heap[pos:pos+self.tuplen], self.heap[candidatepos:candidatepos+self.tuplen] = self.heap[candidatepos:candidatepos+self.tuplen], self.heap[pos:pos+self.tuplen]
+            self._siftdown(candidatepos)
 
     def _siftdown_max(self, pos):
-        if self.heap[pos-1] > self.heap[pos]:
-            self.heap[pos-1], self.heap[pos] = self.heap[pos], self.heap[pos-1]
 
-        candidate, end = pos << 1, min(self.numel, (pos + 2) << 1)
-        if candidate >= self.numel:
+        newitem = self.heap[pos:pos+self.tuplen]
+        sibling =  self.heap[pos-self.tuplen:pos]
+        if sibling[self.sortkey] > newitem[self.sortkey]:
+            self.heap[pos-self.tuplen:pos], self.heap[pos:pos+self.tuplen] = self.heap[pos:pos+self.tuplen], self.heap[pos-self.tuplen:pos]
+
+        candidatepos, endpos = (pos//self.tuplen << 1)*self.tuplen, min(self.numel, (pos//self.tuplen + 2) << 1)*self.tuplen
+        if candidatepos//self.tuplen >= self.numel:
             return
         
-        for i in range(candidate+1, end):
-            if self.heap[i] > self.heap[candidate]:
-                candidate = i
+        for i in range(candidatepos+self.tuplen, endpos, self.tuplen):
+            current = tuple(self.heap[i:i+self.tuplen]) 
+            candidate = tuple(self.heap[candidatepos:candidatepos+self.tuplen])
+            if current[self.sortkey] > candidate[self.sortkey]:
+                candidatepos = i
 
-        if self.heap[candidate] > self.heap[pos]:
-            self.heap[pos], self.heap[candidate] = self.heap[candidate], self.heap[pos]
-            self._siftdown(candidate)
+        candidate = self.heap[candidatepos:candidatepos+self.tuplen]
+        newitem = self.heap[pos:pos+self.tuplen]
+        if candidate[self.sortkey] > newitem[self.sortkey]:
+            self.heap[pos:pos+self.tuplen], self.heap[candidatepos:candidatepos+self.tuplen] = self.heap[candidatepos:candidatepos+self.tuplen], self.heap[pos:pos+self.tuplen]
+            self._siftdown(candidatepos)
 
     def replace_min(self, item):
-        val = self.heap[0]
-        self.heap[0] = item
+        val = tuple(self.heap[0:self.tuplen])
+        self.heap[0:self.tuplen] = item
         self._siftdown(0)
         return val
 
     def replace_max(self, item):
         if self.numel < 2:
             return self.replace_min(item)
-        val = self.heap[1]
-        self.heap[1] = item
-        self._siftdown(1)
+        val = self.heap[1*self.tuplen:1*self.tuplen+self.tuplen]
+        self.heap[1*self.tuplen:1*self.tuplen+self.tuplen] = item
+        self._siftdown(1*self.tuplen)
         return val
 
     def clear(self):
