@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from ipc_tools import MonitoredQueue, RingBuffer
+from ipc_tools import RingBuffer
 
 SZ = (1024, 1024)
 TS = 10.0
@@ -21,7 +21,7 @@ class Tests(unittest.TestCase):
     def test_structured_array_0(self):
         dt = np.dtype([
             ('timestamp', np.float64, (1,)), 
-            ('image', np.float32, (1024,1024))
+            ('image', np.float32, SZ)
         ])
         x = np.array([(TS, ARRAY)], dtype=dt)
         buf = RingBuffer(
@@ -38,7 +38,7 @@ class Tests(unittest.TestCase):
     def test_structured_array_1(self):
         dt = np.dtype([
             ('timestamp', np.float64, (1,)), 
-            ('image', np.float32, (1024,1024))
+            ('image', np.float32, SZ)
         ])
 
         Array_0 = np.random.uniform(low=-1, high=1, size=SZ).astype(np.float32)
