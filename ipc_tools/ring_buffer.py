@@ -16,6 +16,7 @@ class RingBuffer(QueueLike):
     - when the buffer is full it will overwrite unread content (overflow)
     - trying to get item from empty buffer can be either blocking (default) or non blocking (return None)
     - only one process can access the buffer at a time, writing and reading share the same lock
+    - to send multiple fields with heterogeneous type, one can use numpy's structured arrays
     '''
 
     def __init__(
