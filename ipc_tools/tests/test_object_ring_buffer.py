@@ -12,6 +12,18 @@ def serialize(obj):
 def deserialize(obj):
     return obj
 
+def serialize2(obj):
+    dt = np.dtype([
+        ('index', np.float64, (1,)), 
+        ('image', obj[1].dtype, obj[1].shape)
+    ])
+    arr = np.array([(obj[0], obj[1])], dtype=dt) 
+    return arr
+
+def deserialize2(arr):
+    return [arr['index'], arr['image']]
+
+
 class Tests(unittest.TestCase):
 
     def test_array(self):
@@ -19,6 +31,12 @@ class Tests(unittest.TestCase):
         buf.put(ARRAY)
         res = buf.get()
         self.assertTrue(np.allclose(res, ARRAY))
+
+    def test_serialize(self):
+        buf = ObjectRingBuffer(num_items=100, item_shape=SZ, serialize=serialize2, deserialize=deserialize2)
+        buf.put([0,ARRAY])
+        res = buf.get()
+        print(res)
 
     def test_structured_array_0(self):
         dt = np.dtype([
