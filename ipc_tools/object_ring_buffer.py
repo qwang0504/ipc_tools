@@ -3,11 +3,6 @@ from typing import Optional, Any, Callable
 from numpy.typing import NDArray, ArrayLike, DTypeLike
 from ipc_tools import RingBuffer
 import numpy as np
-
-# serialize/deserialize must produce/take a numpy array COMPATIBLE with the ring buffer DTYPE
-# serialize: Callable[[Any], NDArray] can take a list of objects as input and convert to a single NDArray, that can be nice for metadata
-
-# IDEA: have the ObjectRingBuffer create and update RingBuffer on the fly based on serialize output 
  
 class ObjectRingBuffer(QueueLike):
 
