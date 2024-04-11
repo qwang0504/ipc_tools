@@ -71,4 +71,4 @@ class ObjectRingBuffer(QueueLike):
 
     @property
     def num_lost_item(self):
-        self.queue.num_lost_item
+        return self.queue.num_lost_item
