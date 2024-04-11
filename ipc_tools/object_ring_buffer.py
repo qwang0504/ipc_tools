@@ -18,7 +18,7 @@ class ObjectRingBuffer(QueueLike):
             num_items: int = 100,
             item_shape: ArrayLike = (1,),
             data_type: DTypeLike = int,
-            t_refresh: float = 0.001,
+            t_refresh: float = 0.000001,
             copy: bool = False
         ) -> None:
 

@@ -17,7 +17,7 @@ class MultiRingBuffer(QueueLike):
             num_items: int,
             item_shape: List[ArrayLike],
             data_type: List[DTypeLike],
-            t_refresh: float = 0.001,
+            t_refresh: float = 0.000001,
             copy = False
         ):
         

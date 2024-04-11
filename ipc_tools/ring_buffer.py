@@ -24,7 +24,7 @@ class RingBuffer(QueueLike):
             num_items: int,
             item_shape: ArrayLike,
             data_type: DTypeLike,
-            t_refresh: float = 0.001,
+            t_refresh: float = 0.000001,
             copy: bool = False
         ):
         
