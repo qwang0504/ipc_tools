@@ -68,3 +68,7 @@ class ObjectRingBuffer(QueueLike):
 
     def cancel_join_thread(self) -> None:
         self.queue.cancel_join_thread()
+
+    @property
+    def num_lost_item(self):
+        self.queue.num_lost_item
