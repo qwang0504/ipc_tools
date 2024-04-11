@@ -15,9 +15,9 @@ class ObjectRingBuffer(QueueLike):
             self, 
             serialize: Callable[[Any], NDArray], 
             deserialize: Callable[[NDArray], Any],
-            num_items: int = 100,
+            data_type: DTypeLike,
             item_shape: ArrayLike = (1,),
-            data_type: DTypeLike = int,
+            num_items: int = 100,
             t_refresh: float = 1e-6,
             copy: bool = False
         ) -> None:
@@ -53,18 +53,6 @@ class ObjectRingBuffer(QueueLike):
 
     def put(self, obj: Any, block: Optional[bool] = True, timeout: Optional[float] = None) -> None:
         array = self.serialize(obj) 
-        
-        if array.dtype != self.data_type or array.shape != self.item_shape:
-            self.queue = RingBuffer(
-                num_items = self.num_items,
-                item_shape = array.shape,
-                data_type = array.dtype,
-                t_refresh = self.t_refresh,
-                copy = self.copy
-            )
-            self.data_type = array.dtype
-            self.item_shape = array.shape
-
         self.queue.put(array, block, timeout)
     
     def get(self, block: Optional[bool] = True, timeout: Optional[float] = None) -> Any:
