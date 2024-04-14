@@ -94,6 +94,9 @@ class RingBuffer(QueueLike):
                 )
             self.read_cursor.value = (self.read_cursor.value  +  1) % self.num_items
 
+        # this seems to be necessary to give time to consumers to get the lock 
+        time.sleep(self.t_refresh)
+        
         return element.reshape(self.item_shape)
     
     def put(self, element: ArrayLike, block: Optional[bool] = True, timeout: Optional[float] = None) -> None:
