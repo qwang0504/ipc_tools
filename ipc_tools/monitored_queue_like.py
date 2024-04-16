@@ -2,18 +2,16 @@ from .queue_like import QueueLike
 from typing import Optional, Any, Tuple 
 from multiprocessing import Value
 import time
-from multiprocessing_logger import Logger
 
 
 # TODO: give the queue a logger, log put and get, and plot when the queue is busy
  
 class MonitoredQueue(QueueLike):
 
-    def __init__(self, queue: QueueLike, logger: Logger) -> None:
+    def __init__(self, queue: QueueLike) -> None:
         super().__init__()
         self.queue = queue
-        self.logger = logger
-
+        
         # store the number of items that were put/retrieved
         self.num_item_in = Value('I',0)
         self.num_item_out = Value('I',0)

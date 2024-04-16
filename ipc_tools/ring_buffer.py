@@ -5,6 +5,7 @@ import numpy as np
 from numpy.typing import NDArray, ArrayLike, DTypeLike
 import time
 from queue import Empty
+from multiprocessing_logger import Logger
 
 # TODO make a buffer that blocks instead of overflowing 
 # TODO write an Object abstract class with a serialization to
@@ -25,13 +26,15 @@ class RingBuffer(QueueLike):
             item_shape: ArrayLike,
             data_type: DTypeLike,
             t_refresh: float = 1e-6,
-            copy: bool = False
+            copy: bool = False,
+            logger: Optional[Logger] = None
         ):
         
         self.item_shape = np.asarray(item_shape)
         self.element_type = np.dtype(data_type)
         self.t_refresh = t_refresh
         self.copy = copy
+        self.logger = logger
 
         # account for empty slot
         self.num_items = num_items + 1 
@@ -75,6 +78,8 @@ class RingBuffer(QueueLike):
 
         with self.lock:
 
+            t_start = time.perf_counter_ns() * 1e-6
+
             if self.empty():
                 raise Empty
 
@@ -94,7 +99,12 @@ class RingBuffer(QueueLike):
                 )
             self.read_cursor.value = (self.read_cursor.value  +  1) % self.num_items
 
-        # this seems to be necessary to give time to consumers to get the lock 
+            t_stop = time.perf_counter_ns() * 1e-6
+
+        if self.logger:
+            self.logger.info(f'get, {t_start}, {t_stop}')
+
+        # this seems to be necessary to give time to other workers to get the lock 
         time.sleep(self.t_refresh)
         
         return element.reshape(self.item_shape)
@@ -110,6 +120,8 @@ class RingBuffer(QueueLike):
         arr_element = np.asarray(element, dtype = self.element_type)
 
         with self.lock:
+
+            t_start = time.perf_counter_ns() * 1e-6
 
             buffer = np.frombuffer(
                 self.data, 
@@ -129,7 +141,12 @@ class RingBuffer(QueueLike):
             # update write cursor value
             self.write_cursor.value = (self.write_cursor.value  +  1) % self.num_items
 
-        # this seems to be necessary to give time to consumers to get the lock 
+            t_stop = time.perf_counter_ns() * 1e-6
+
+        if self.logger:
+            self.logger.info(f'put, {t_start}, {t_stop}')
+
+        # this seems to be necessary to give time to other workers to get the lock 
         time.sleep(self.t_refresh)
 
     def full(self):
