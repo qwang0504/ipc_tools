@@ -16,7 +16,8 @@ class ObjectRingBuffer(QueueLike):
             num_items: int = 100,
             t_refresh: float = 1e-6,
             copy: bool = False,
-            logger: Optional[Logger] = None
+            name: str = '', 
+            logger: Optional[Logger] = None,
         ) -> None:
 
         super().__init__()
@@ -34,7 +35,8 @@ class ObjectRingBuffer(QueueLike):
             data_type = data_type,
             t_refresh = t_refresh,
             copy = copy,
-            logger = logger
+            logger = logger,
+            name = name
         )
 
         self.serialize = serialize

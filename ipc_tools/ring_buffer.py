@@ -27,6 +27,7 @@ class RingBuffer(QueueLike):
             data_type: DTypeLike,
             t_refresh: float = 1e-6,
             copy: bool = False,
+            name: str = '',
             logger: Optional[Logger] = None
         ):
         
@@ -34,7 +35,10 @@ class RingBuffer(QueueLike):
         self.element_type = np.dtype(data_type)
         self.t_refresh = t_refresh
         self.copy = copy
-        self.logger = logger
+        self.name = name
+
+        if logger:
+            self.logger = logger.get_logger(name)
 
         # account for empty slot
         self.num_items = num_items + 1 
