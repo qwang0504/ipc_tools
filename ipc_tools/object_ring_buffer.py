@@ -3,6 +3,7 @@ from typing import Optional, Any, Callable
 from numpy.typing import NDArray, ArrayLike, DTypeLike
 from ipc_tools import RingBuffer
 import numpy as np
+from multiprocessing_logger import Logger
  
 class ObjectRingBuffer(QueueLike):
 
@@ -14,7 +15,8 @@ class ObjectRingBuffer(QueueLike):
             item_shape: ArrayLike = (1,),
             num_items: int = 100,
             t_refresh: float = 1e-6,
-            copy: bool = False
+            copy: bool = False,
+            logger: Optional[Logger] = None
         ) -> None:
 
         super().__init__()
@@ -31,7 +33,8 @@ class ObjectRingBuffer(QueueLike):
             item_shape = item_shape,
             data_type = data_type,
             t_refresh = t_refresh,
-            copy = copy
+            copy = copy,
+            logger = logger
         )
 
         self.serialize = serialize
