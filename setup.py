@@ -17,7 +17,7 @@ setup(
         "seaborn",
         "tqdm",
         "matplotlib",
-        "scipy"
+        "scipy",
         "multiprocessing_logger @ git+https://github.com/ElTinmar/multiprocessing_logger.git@main",
     ]
 )
