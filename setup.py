@@ -18,5 +18,6 @@ setup(
         "tqdm",
         "matplotlib",
         "scipy"
+        "multiprocessing_logger @ git+https://github.com/ElTinmar/multiprocessing_logger.git@main",
     ]
 )
