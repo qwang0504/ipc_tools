@@ -12,8 +12,9 @@ def parse_logs(filename: str) -> List[Dict]:
         (?P<process_name>(\w|\.)+) \s+
         (?P<loglevel>\w+) \s+
         (?P<operation>\w+) ,\s+
-        (?P<timestamp_start>\d+\.\d+) ,\s+
-        (?P<timestamp_stop>\d+\.\d+)
+        (?P<t_start>\d+\.\d+) ,\s+
+        (?P<t_lock_acquired>\d+\.\d+) ,\s+
+        (?P<t_lock_released>\d+\.\d+)
         """, re.VERBOSE)
     
     with open(filename, 'r') as f:
@@ -36,14 +37,16 @@ def plot_logs(filename: str) -> None:
         'process_name': 'str',
         'loglevel': 'str',
         'operation': 'str',
-        'timestamp_start': 'float64',
-        'timestamp_stop': 'float64'
+        't_start': 'float64',
+        't_lock_acquired': 'float64',
+        't_lock_released': 'float64'
     })
 
     # shift absolute tiimings to start at zero
-    min_timestamp = min(data['timestamp_start'])
-    data['timestamp_start'] = data['timestamp_start'] - min_timestamp
-    data['timestamp_stop'] = data['timestamp_stop'] - min_timestamp
+    min_timestamp = min(data['t_start'])
+    data['t_start'] = data['t_start'] - min_timestamp
+    data['t_lock_acquired'] = data['t_lock_acquired'] - min_timestamp
+    data['t_lock_released'] = data['t_lock_released'] - min_timestamp
 
     # plot
     y = 0
@@ -59,9 +62,12 @@ def plot_logs(filename: str) -> None:
         yticks.append(y)
         for operation in operations: 
             df = data[(data['process_name'] == queue) & (data['operation'] == operation)]
-            lines = [[(x0,y),(x1,y)] for x0,x1 in zip(df['timestamp_start'], df['timestamp_stop'])]
-            lc = mc.LineCollection(lines, colors=col[operation])
-            ax.add_collection(lc)
+            lines_wait = [[(x0,y),(x1,y)] for x0,x1 in zip(df['t_start'], df['t_lock_acquired'])]
+            lines_lock = [[(x0,y),(x1,y)] for x0,x1 in zip(df['t_lock_acquired'], df['t_lock_released'])]
+            collection_wait = mc.LineCollection(lines_wait, colors='gray')
+            collection_lock = mc.LineCollection(lines_lock, colors=col[operation])
+            ax.add_collection(collection_wait)
+            ax.add_collection(collection_lock)
     ax.autoscale()
     ax.set_yticks(yticks, queues)
     plt.show()
