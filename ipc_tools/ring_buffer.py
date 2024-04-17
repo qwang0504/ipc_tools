@@ -144,7 +144,7 @@ class RingBuffer(QueueLike):
                 self.read_cursor.value = (self.read_cursor.value  +  1) % self.num_items
                 self.num_lost_item.value += 1
 
-            # write flattened array content to buffer
+            # write flattened array content to buffer (a copy is made)
             buffer[:] = arr_element.ravel()
 
             # update write cursor value
