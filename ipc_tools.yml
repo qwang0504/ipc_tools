@@ -14,3 +14,4 @@ dependencies:
 - pip
 - pip:
   - arrayqueues
+  - git+https://github.com/ElTinmar/multiprocessing_logger.git@main
