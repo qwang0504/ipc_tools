@@ -27,6 +27,7 @@ class ObjectRingBuffer(QueueLike):
         self.item_shape = item_shape
         self.data_type = np.dtype(data_type)
         self.copy = copy
+        self.name = name
 
         # create default RingBuffer
         self.queue = RingBuffer(
@@ -44,7 +45,7 @@ class ObjectRingBuffer(QueueLike):
 
     def init_logger(self):
         self.queue.init_logger()
-        
+
     def qsize(self) -> int:
         return self.queue.qsize()
 
