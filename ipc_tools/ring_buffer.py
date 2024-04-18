@@ -37,7 +37,8 @@ class RingBuffer(QueueLike):
         self.copy = copy
         self.name = name
         self.logger = logger
-        self.local_logger = None
+        if self.logger:
+            self.local_logger = self.logger.get_logger(self.name)
 
         # account for empty slot
         self.num_items = num_items + 1 
@@ -50,12 +51,6 @@ class RingBuffer(QueueLike):
         self.write_cursor = RawValue('I',0)
         self.num_lost_item = RawValue('I',0)
         self.data = RawArray('B', self.total_size*self.element_byte_size) 
-
-    def init_logger(self):
-        if (self.logger is not None):
-            # Why adding (self.local_logger is None) has any effect on the number of repeats ???
-            self.logger.configure_emitter() # move this to worker init to remove repeats
-            self.local_logger = self.logger.get_logger(self.name)
         
     def get(self, block: bool = True, timeout: Optional[float] = None) -> Optional[NDArray]:
         '''return buffer to the current read location'''
