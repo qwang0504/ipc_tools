@@ -52,6 +52,9 @@ class QueueLike(ABC):
     def cancel_join_thread(self) -> None:
         pass
 
+    def init_logger(self) -> None:
+        pass
+    
 class QueueMP(Queue, QueueLike):
 
     def __init__(self, *args, **kwargs) -> None:
