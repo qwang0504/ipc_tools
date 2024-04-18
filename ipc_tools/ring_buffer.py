@@ -52,8 +52,9 @@ class RingBuffer(QueueLike):
         self.data = RawArray('B', self.total_size*self.element_byte_size) 
 
     def init_logger(self):
-        if (self.logger is not None) and (self.local_logger is None):
-            self.logger.configure_emitter()
+        if (self.logger is not None):
+            # Why adding (self.local_logger is None) has any effect on the number of repeats ???
+            self.logger.configure_emitter() # move this to worker init to remove repeats
             self.local_logger = self.logger.get_logger(self.name)
         
     def get(self, block: bool = True, timeout: Optional[float] = None) -> Optional[NDArray]:
