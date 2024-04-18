@@ -38,7 +38,7 @@ class RingBuffer(QueueLike):
         self.name = name
 
         if logger:
-            logger.configure_emitter()
+            # NOTE logger.configure_emitter() needs to be called in the main process
             self.logger = logger.get_logger(name)
 
         # account for empty slot
