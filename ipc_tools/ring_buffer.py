@@ -52,7 +52,7 @@ class RingBuffer(QueueLike):
         self.data = RawArray('B', self.total_size*self.element_byte_size) 
 
     def init_logger(self):
-        if self.logger:
+        if (self.logger is not None) and (self.local_logger is None):
             self.logger.configure_emitter()
             self.local_logger = self.logger.get_logger(self.name)
         
