@@ -42,6 +42,9 @@ class ObjectRingBuffer(QueueLike):
         self.serialize = serialize
         self.deserialize = deserialize
 
+    def init_logger(self):
+        self.queue.init_logger()
+        
     def qsize(self) -> int:
         return self.queue.qsize()
 
