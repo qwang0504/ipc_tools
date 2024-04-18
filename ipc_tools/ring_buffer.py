@@ -36,10 +36,8 @@ class RingBuffer(QueueLike):
         self.t_refresh = t_refresh
         self.copy = copy
         self.name = name
-
-        if logger:
-            # NOTE logger.configure_emitter() needs to be called in the main process
-            self.logger = logger.get_logger(name)
+        self.logger = logger
+        self.local_logger = None
 
         # account for empty slot
         self.num_items = num_items + 1 
@@ -52,6 +50,11 @@ class RingBuffer(QueueLike):
         self.write_cursor = RawValue('I',0)
         self.num_lost_item = RawValue('I',0)
         self.data = RawArray('B', self.total_size*self.element_byte_size) 
+
+    def init_logger(self):
+        if self.logger:
+            self.logger.configure_emitter()
+            self.local_logger = self.logger.get_logger(self.name)
         
     def get(self, block: bool = True, timeout: Optional[float] = None) -> Optional[NDArray]:
         '''return buffer to the current read location'''
@@ -108,8 +111,8 @@ class RingBuffer(QueueLike):
 
             t_lock_released = time.perf_counter_ns() * 1e-6
 
-        if self.logger:
-            self.logger.info(f'get, {t_start}, {t_lock_acquired}, {t_lock_released}')
+        if self.local_logger:
+            self.local_logger.info(f'get, {t_start}, {t_lock_acquired}, {t_lock_released}')
 
         # this seems to be necessary to give time to other workers to get the lock 
         time.sleep(self.t_refresh)
@@ -152,8 +155,8 @@ class RingBuffer(QueueLike):
 
             t_lock_released = time.perf_counter_ns() * 1e-6
 
-        if self.logger:
-            self.logger.info(f'put, {t_start}, {t_lock_acquired}, {t_lock_released}')
+        if self.local_logger:
+            self.local_logger.info(f'put, {t_start}, {t_lock_acquired}, {t_lock_released}')
 
         # this seems to be necessary to give time to other workers to get the lock 
         time.sleep(self.t_refresh)
