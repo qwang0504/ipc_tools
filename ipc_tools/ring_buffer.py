@@ -80,10 +80,12 @@ class RingBuffer(QueueLike):
 
     def get_noblock(self) -> Optional[NDArray]:
         '''return data at the current read location'''
+        
+        t_start = time.perf_counter_ns() * 1e-6
 
         with self.lock:
 
-            t_start = time.perf_counter_ns() * 1e-6
+            t_lock_acquired = time.perf_counter_ns() * 1e-6
 
             if self.empty():
                 raise Empty
@@ -104,10 +106,10 @@ class RingBuffer(QueueLike):
                 )
             self.read_cursor.value = (self.read_cursor.value  +  1) % self.num_items
 
-            t_stop = time.perf_counter_ns() * 1e-6
+            t_lock_released = time.perf_counter_ns() * 1e-6
 
         if self.logger:
-            self.logger.info(f'get, {t_start}, {t_stop}')
+            self.logger.info(f'get, {t_start}, {t_lock_acquired}, {t_lock_released}')
 
         # this seems to be necessary to give time to other workers to get the lock 
         time.sleep(self.t_refresh)
@@ -121,12 +123,14 @@ class RingBuffer(QueueLike):
         are ignored since the ring buffer overflows by design.  
         '''
 
+        t_start = time.perf_counter_ns() * 1e-6
+
         # convert to numpy array
         arr_element = np.asarray(element, dtype = self.element_type)
 
         with self.lock:
 
-            t_start = time.perf_counter_ns() * 1e-6
+            t_lock_acquired = time.perf_counter_ns() * 1e-6
 
             buffer = np.frombuffer(
                 self.data, 
@@ -140,16 +144,16 @@ class RingBuffer(QueueLike):
                 self.read_cursor.value = (self.read_cursor.value  +  1) % self.num_items
                 self.num_lost_item.value += 1
 
-            # write flattened array content to buffer
+            # write flattened array content to buffer (a copy is made)
             buffer[:] = arr_element.ravel()
 
             # update write cursor value
             self.write_cursor.value = (self.write_cursor.value  +  1) % self.num_items
 
-            t_stop = time.perf_counter_ns() * 1e-6
+            t_lock_released = time.perf_counter_ns() * 1e-6
 
         if self.logger:
-            self.logger.info(f'put, {t_start}, {t_stop}')
+            self.logger.info(f'put, {t_start}, {t_lock_acquired}, {t_lock_released}')
 
         # this seems to be necessary to give time to other workers to get the lock 
         time.sleep(self.t_refresh)

@@ -100,7 +100,7 @@ if __name__ == '__main__':
     reps = 1
     timing_data = pd.DataFrame(columns=['pfun','shm','ncons','fps_in','fps_out', 'frame_sz'])
 
-    for SZ in tqdm([(256,256),(512,512),(1024,1024),(2048,2048)], desc="frame size", position = 0):
+    for SZ in tqdm([(512,512),(1024,1024),(2048,2048),(4096,4096)], desc="frame size", position = 0):
 
         BIGARRAY = np.random.randint(0, 255, SZ, dtype=np.uint8)
         max_size_MB = int(2000*np.prod(SZ)/(1024**2))
