@@ -23,8 +23,8 @@ class RingBuffer(QueueLike):
     def __init__(
             self,
             num_items: int,
-            item_shape: ArrayLike,
             data_type: DTypeLike,
+            item_shape: ArrayLike = (1,),
             t_refresh: float = 1e-6,
             copy: bool = False,
             name: str = '',
