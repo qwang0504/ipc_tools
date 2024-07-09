@@ -37,9 +37,10 @@ class RingBuffer(QueueLike):
         self.copy = copy
         self.name = name
         self.logger = logger
+        self.local_logger = None
         if self.logger:
             self.local_logger = self.logger.get_logger(self.name)
-
+            
         # account for empty slot
         self.num_items = num_items + 1 
         self.item_num_element = int(np.prod(self.item_shape))
