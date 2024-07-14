@@ -58,6 +58,9 @@ class ZMQ_PushPull(QueueLike):
     def close(self) -> bool:
         pass
 
+    def clear(self) -> None:
+        pass
+
 class ZMQ_PushPullArray(ZMQ_PushPull, QueueLike):
 
     def __init__(

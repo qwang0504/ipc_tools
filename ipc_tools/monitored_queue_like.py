@@ -53,6 +53,22 @@ class MonitoredQueue(QueueLike):
     def cancel_join_thread(self) -> None:
         self.queue.cancel_join_thread()
 
+    def clear(self) -> None:
+
+        with self.num_item_in.get_lock():
+            self.num_item_in.value = 0
+            self.time_in.value = 0
+            self.time_in_start.value = 0
+            self.freq_in.value = 0
+        
+        with self.num_item_out.get_lock():
+            self.num_item_out.value = 0
+            self.time_out.value = 0
+            self.time_out_start.value = 0
+            self.freq_out.value = 0
+            
+        self.queue.clear()
+
     def account_in(self) -> None:
         with self.num_item_in.get_lock():
             self.num_item_in.value += 1

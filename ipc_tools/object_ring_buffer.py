@@ -76,6 +76,8 @@ class ObjectRingBuffer(QueueLike):
     def num_lost_item(self):
         return self.queue.num_lost_item
 
+    def clear(self) -> None:
+        self.queue.clear()
 
 
 class ObjectRingBuffer2(RingBuffer):

@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Any
 from multiprocessing.queues import Queue
+from queue import Empty
 from multiprocessing import get_context
 
 class QueueLike(ABC):
@@ -46,6 +47,10 @@ class QueueLike(ABC):
     def close(self) -> None:
         pass
 
+    @abstractmethod
+    def clear(self) -> None:
+        pass
+
     def join_thread(self) -> None:
         pass
 
@@ -56,4 +61,11 @@ class QueueMP(Queue, QueueLike):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs, ctx = get_context())
+
+    def clear(self) -> None:
+        try:
+            while True:
+                self.get_nowait()
+        except Empty:
+            pass
 
