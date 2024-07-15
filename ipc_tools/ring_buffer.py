@@ -175,7 +175,8 @@ class RingBuffer(QueueLike):
 
     def clear(self):
         '''clear the buffer'''
-        self.write_cursor.value = self.read_cursor.value
+        with self.lock:
+            self.write_cursor.value = self.read_cursor.value
 
     def view_data(self):
         num_items = self.write_cursor.value - self.read_cursor.value
