@@ -61,6 +61,7 @@ class QueueMP(Queue, QueueLike):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs, ctx = get_context())
+        self.cancel_join_thread()
 
     def clear(self) -> None:
         try:
