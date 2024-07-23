@@ -93,6 +93,6 @@ class MonitoredQueue(QueueLike):
 
     def get_average_freq(self) -> Tuple[float, float]:
         return (
-            self.num_item_in.value/self.time_in.value,
-            self.num_item_out.value/self.time_out.value
+            self.num_item_in.value/self.time_in.value if self.time_in.value > 0 else 0,
+            self.num_item_out.value/self.time_out.value if self.time_out.value > 0 else 0
         )
