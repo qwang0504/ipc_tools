@@ -208,7 +208,9 @@ class RingBuffer(QueueLike):
         return reprstr
         
 
-# TODO maybe I can inherit
+# TODO maybe I can 
+# TODO allocate_items does not propagate to other processes. I would need to 
+# share that info too
 class ModifiableRingBuffer(QueueLike):
     '''
     Simple circular buffer implementation, with the following features:
