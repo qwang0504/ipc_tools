@@ -209,8 +209,11 @@ class RingBuffer(QueueLike):
         
 
 # TODO maybe I can 
-# TODO allocate_items does not propagate to other processes. I would need to 
-# share that info too
+# TODO I need to share between processes:
+# - self.element_type <- DType, not straightforward
+# - self.element_byte_size <- easy, use a value
+# - self.num_items <- easy, use a value
+# - self.dead_bytes <- easy, use a value
 class ModifiableRingBuffer(QueueLike):
     '''
     Simple circular buffer implementation, with the following features:
