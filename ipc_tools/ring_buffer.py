@@ -8,8 +8,13 @@ from queue import Empty
 from multiprocessing_logger import Logger
 
 # TODO make a buffer that blocks instead of overflowing 
-# TODO write an Object abstract class with a serialization to
-# numpy array function
+
+# TODO be able to change dtype on the fly (discarding all data)
+# You can't just create a new array, it wouldn't be shared anymore between
+# processes. 
+# IDEA: attribute a certain size in bytes (not num elements) when you initialize
+# then when data with different size comes, keep the overall array size, but just 
+# change the compartiment sizes (and thus max num elements)
 
 class RingBuffer(QueueLike):
     '''
