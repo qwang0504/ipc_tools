@@ -208,12 +208,16 @@ class RingBuffer(QueueLike):
         return reprstr
         
 
-# TODO maybe I can 
 # TODO I need to share between processes:
 # - self.element_type <- DType, not straightforward
 # - self.element_byte_size <- easy, use a value
 # - self.num_items <- easy, use a value
 # - self.dead_bytes <- easy, use a value
+
+# IDEA for dtype: pickle dtype and store string in a byte array large enough for exotic dtypes
+#  also share the length of the pickled string with a value
+# ex: pickle.dumps(np.dtype([('index', '<i8', (1,)), ('timestamp', '<f8', (1,)), ('image', 'u1', (512, 512, 3))]))
+ 
 class ModifiableRingBuffer(QueueLike):
     '''
     Simple circular buffer implementation, with the following features:
