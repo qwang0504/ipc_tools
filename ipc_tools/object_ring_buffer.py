@@ -232,7 +232,7 @@ class ObjectRingBuffer3(ModifiableRingBuffer):
 
         return data
     
-    def put(self, data: Any, block: Optional[bool] = True, timeout: Optional[float] = None) -> None:
+    def put(self, data: Any, data_type: DTypeLike, block: Optional[bool] = True, timeout: Optional[float] = None) -> None:
         '''
         Return data at the current write location.
         block and timeout are there for compatibility with the Queue interface, but 
@@ -240,6 +240,11 @@ class ObjectRingBuffer3(ModifiableRingBuffer):
         '''
 
         t_start = time.perf_counter_ns() * 1e-6
+
+        element_type = np.dtype(data_type)
+        if element_type != self.element_type:
+            self.element_type = element_type
+            self.allocate_items()
 
         with self.lock:
 
