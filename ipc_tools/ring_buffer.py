@@ -1,4 +1,4 @@
-from multiprocessing import RawArray, RawValue, RLock
+from multiprocessing import RawArray, RawValue, RLock, Process
 from .queue_like import QueueLike
 from typing import Optional
 import numpy as np
@@ -329,19 +329,22 @@ class ModifiableRingBuffer(QueueLike):
         
         t_start = time.perf_counter_ns() * 1e-6
 
-        # get dtype
-        datatype = pickle.loads(self.dt_str[0:self.dt_len.value])
-        if datatype != self.element_type:
-            self.element_type = element.dtype
-            self.allocate_items()
-
         with self.lock:
 
             t_lock_acquired = time.perf_counter_ns() * 1e-6
 
+            # get dtype
+            datatype = pickle.loads(self.dt_str[0:self.dt_len.value])
+            if datatype != self.element_type:
+                self.element_type = datatype
+                self.element_byte_size = self.element_type.itemsize 
+                self.num_items = (self.num_bytes // self.element_byte_size)  
+                self.dead_bytes = self.num_bytes % self.element_byte_size
+
             if self.empty():
                 raise Empty
 
+            # get data
             if self.copy:
                 element = np.frombuffer(
                     self.data, 
@@ -377,24 +380,24 @@ class ModifiableRingBuffer(QueueLike):
 
         t_start = time.perf_counter_ns() * 1e-6
 
-        if element.dtype != self.element_type:
-
-            # share new dtype with other processes
-            dtypestr = pickle.dumps(element.dtype)
-            self.dt_len.value = len(dtypestr)
-            if self.dt_len.value > self.DTYPE_ARRAY_LEN:
-                raise RuntimeError('fixed array too small for dtype')
-            self.dt_str[0:self.dt_len.value] = dtypestr
-
-            self.element_type = element.dtype
-            self.allocate_items()
-
-        # convert to numpy array
-        arr_element = np.asarray(element, dtype = self.element_type)
-
         with self.lock:
 
             t_lock_acquired = time.perf_counter_ns() * 1e-6
+
+            if element.dtype != self.element_type:
+
+                # share new dtype with other processes
+                dtypestr = pickle.dumps(element.dtype)
+                self.dt_len.value = len(dtypestr)
+                if self.dt_len.value > self.DTYPE_ARRAY_LEN:
+                    raise RuntimeError('fixed array too small for dtype')
+                self.dt_str[0:self.dt_len.value] = dtypestr
+
+                self.element_type = element.dtype
+                self.allocate_items()
+
+            # convert to numpy array
+            arr_element = np.asarray(element, dtype = self.element_type)
 
             buffer = np.frombuffer(
                 self.data, 
@@ -476,3 +479,31 @@ class ModifiableRingBuffer(QueueLike):
         )
 
         return reprstr
+    
+if __name__ == '__main__':
+
+    import numpy as np
+    import time
+
+    mrb = ModifiableRingBuffer(
+        num_bytes=4,
+        logger = None,
+        name = '',
+        t_refresh=0.0001
+    )
+    
+    def test(mrb):
+        time.sleep(1)
+        data = mrb.get()
+        print(f'from child process: {(data,)}')
+        time.sleep(2)
+        data = mrb.get()
+        print(f'from child process: {(data,)}')
+        
+
+    p = Process(target=test, args=(mrb,))
+    p.start()
+    mrb.put(np.array([0], dtype=np.uint8))
+    time.sleep(2)
+    mrb.put(np.array([0], dtype=np.uint16))
+    p.join()
