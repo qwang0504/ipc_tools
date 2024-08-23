@@ -217,7 +217,25 @@ class RingBuffer(QueueLike):
 # IDEA for dtype: pickle dtype and store string in a byte array large enough for exotic dtypes
 # also share the length of the pickled string with a value
 # ex: pickle.dumps(np.dtype([('index', '<i8', (1,)), ('timestamp', '<f8', (1,)), ('image', 'u1', (512, 512, 3))]))
- 
+# need to write to byte array containing dtype each time you put() 
+#    and read from byte array containing dtype each time you get()
+
+'''
+import pickle
+from multiprocessing import RawArray, Value
+import numpy as np
+
+data_type = RawArray('B', 400)
+dtype_len = Value('I', 0)
+
+original_dtype = np.dtype([('index', '<i8', (1,)), ('timestamp', '<f8', (1,)), ('image', 'u1', (512, 512, 3))])
+s = pickle.dumps(original_dtype)
+dtype_len.value = len(s)
+data[0:dtype_len.value] = s
+reconstructed_dtype = pickle.loads(bytes(data[0:dtype_len.value]))
+
+'''
+
 class ModifiableRingBuffer(QueueLike):
     '''
     Simple circular buffer implementation, with the following features:
