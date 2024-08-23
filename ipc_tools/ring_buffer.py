@@ -221,7 +221,6 @@ class ModifiableRingBuffer(QueueLike):
     def __init__(
             self,
             num_bytes: int,
-            data_type: DTypeLike,
             t_refresh: float = 1e-6,
             copy: bool = False,
             name: str = '',
@@ -229,7 +228,6 @@ class ModifiableRingBuffer(QueueLike):
         ):
         
         self.num_bytes = num_bytes
-        self.element_type = np.dtype(data_type)
         self.t_refresh = t_refresh
         self.copy = copy
         self.name = name
@@ -243,8 +241,11 @@ class ModifiableRingBuffer(QueueLike):
         self.write_cursor = RawValue('I',0)
         self.num_lost_item = RawValue('I',0)
         self.data = RawArray('B', self.num_bytes) 
-
-        self.allocate_items()
+        
+        self.element_type = None
+        self.element_byte_size = None
+        self.num_items = None
+        self.dead_bytes = None
 
     def allocate_items(self):
 
@@ -386,7 +387,11 @@ class ModifiableRingBuffer(QueueLike):
             self.write_cursor.value = self.read_cursor.value
 
     def view_data(self):
-        num_items = self.write_cursor.value - self.read_cursor.value
+
+        if self.element_byte_size is None:
+            return np.array([])
+        
+        num_items = self.write_cursor.value - self.read_cursor.value 
 
         stored_data = np.frombuffer(                
             self.data, 
@@ -398,6 +403,9 @@ class ModifiableRingBuffer(QueueLike):
         return stored_data
     
     def __str__(self):
+
+        if self.num_items is None:
+            return 'Buffer non-initialized'    
         
         reprstr = (
             f'capacity: {self.num_items - 1}\n' +
