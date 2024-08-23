@@ -210,40 +210,6 @@ class RingBuffer(QueueLike):
         return reprstr
         
 
-# TODO I need to share between processes:
-# - self.element_type <- DType, not straightforward
-# - self.element_byte_size <- easy, use a value
-# - self.num_items <- easy, use a value
-# - self.dead_bytes <- easy, use a value
-
-# IDEA for dtype: pickle dtype and store string in a fixed-size byte array (large enough for exotic dtypes)
-# also share the length of the pickled string with a value
-# ex: pickle.dumps(np.dtype([('index', '<i8', (1,)), ('timestamp', '<f8', (1,)), ('image', 'u1', (512, 512, 3))]))
-# need to write to byte array containing dtype each time you put() 
-#    and read from byte array containing dtype each time you get()
-
-'''
-import pickle
-from multiprocessing import RawArray, Value
-import numpy as np
-import ctypes 
-
-FIXED_ARRAY_LEN = 400
-
-data_type = RawArray(ctypes.c_char, FIXED_ARRAY_LEN)
-dtype_len = Value('I', 0)
-
-original_dtype = np.dtype([('index', '<i8', (1,)), ('timestamp', '<f8', (1,)), ('image', 'u1', (512, 512, 3))])
-s = pickle.dumps(original_dtype)
-dtype_len.value = len(s)
-
-if dtype_len.value > FIXED_ARRAY_LEN:
-    raise RuntimeError('fixed array too small')
-
-data_type[0:dtype_len.value] = s
-reconstructed_dtype = pickle.loads(data_type[0:dtype_len.value])
-'''
-
 class ModifiableRingBuffer(QueueLike):
     '''
     Simple circular buffer implementation, with the following features:
