@@ -486,7 +486,7 @@ if __name__ == '__main__':
     import time
 
     mrb = ModifiableRingBuffer(
-        num_bytes=4,
+        num_bytes=512,
         logger = None,
         name = '',
         t_refresh=0.0001
@@ -499,11 +499,17 @@ if __name__ == '__main__':
         time.sleep(2)
         data = mrb.get()
         print(f'from child process: {(data,)}')
+        time.sleep(1)
+        mrb.put(np.array([1.0], dtype=np.float128))
         
 
     p = Process(target=test, args=(mrb,))
     p.start()
     mrb.put(np.array([0], dtype=np.uint8))
+    mrb.put(np.array([1], dtype=np.uint8))
     time.sleep(2)
     mrb.put(np.array([0], dtype=np.uint16))
     p.join()
+
+    data = mrb.get()
+    print(f'from main process: {(data,)}')
