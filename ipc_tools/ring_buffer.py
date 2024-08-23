@@ -215,7 +215,7 @@ class RingBuffer(QueueLike):
 # - self.dead_bytes <- easy, use a value
 
 # IDEA for dtype: pickle dtype and store string in a byte array large enough for exotic dtypes
-#  also share the length of the pickled string with a value
+# also share the length of the pickled string with a value
 # ex: pickle.dumps(np.dtype([('index', '<i8', (1,)), ('timestamp', '<f8', (1,)), ('image', 'u1', (512, 512, 3))]))
  
 class ModifiableRingBuffer(QueueLike):
