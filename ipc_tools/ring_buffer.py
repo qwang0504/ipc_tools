@@ -9,12 +9,7 @@ from multiprocessing_logger import Logger
 
 # TODO make a buffer that blocks instead of overflowing 
 
-# TODO be able to change dtype on the fly (discarding all data)
-# You can't just create a new array, it wouldn't be shared anymore between
-# processes. 
-# IDEA: attribute a certain size in bytes (not num elements) when you initialize
-# then when data with different size comes, keep the overall array size, but just 
-# change the compartiment sizes (and thus max num elements)
+# TODO there is a problem with viewdata ?
 
 class RingBuffer(QueueLike):
     '''
@@ -227,7 +222,6 @@ class ModifiableRingBuffer(QueueLike):
             self,
             num_bytes: int,
             data_type: DTypeLike,
-            item_shape: ArrayLike = (1,),
             t_refresh: float = 1e-6,
             copy: bool = False,
             name: str = '',
@@ -235,7 +229,6 @@ class ModifiableRingBuffer(QueueLike):
         ):
         
         self.num_bytes = num_bytes
-        self.item_shape = np.asarray(item_shape)
         self.element_type = np.dtype(data_type)
         self.t_refresh = t_refresh
         self.copy = copy
@@ -255,10 +248,9 @@ class ModifiableRingBuffer(QueueLike):
 
     def allocate_items(self):
 
-        self.item_num_element = int(np.prod(self.item_shape))
         self.element_byte_size = self.element_type.itemsize 
-        self.num_items = (self.num_bytes // (self.item_num_element*self.element_byte_size)) - 1 # keep one empty slot 
-        self.dead_bytes = self.num_bytes % (self.item_num_element*self.element_byte_size)
+        self.num_items = (self.num_bytes // self.element_byte_size)  
+        self.dead_bytes = self.num_bytes % self.element_byte_size
         with self.lock:
             self.read_cursor.value = 0
             self.write_cursor.value = 0
@@ -305,15 +297,15 @@ class ModifiableRingBuffer(QueueLike):
                 element = np.frombuffer(
                     self.data, 
                     dtype = self.element_type, 
-                    count = self.item_num_element,
-                    offset = self.read_cursor.value * self.item_num_element * self.element_byte_size # offset should be in bytes
+                    count = 1,
+                    offset = self.read_cursor.value * self.element_byte_size # offset should be in bytes
                 ).copy()
             else:
                 element = np.frombuffer(
                     self.data, 
                     dtype = self.element_type, 
-                    count = self.item_num_element,
-                    offset = self.read_cursor.value * self.item_num_element * self.element_byte_size # offset should be in bytes
+                    count = 1,
+                    offset = self.read_cursor.value * self.element_byte_size # offset should be in bytes
                 )
             self.read_cursor.value = (self.read_cursor.value  +  1) % self.num_items
 
@@ -325,7 +317,7 @@ class ModifiableRingBuffer(QueueLike):
         # this seems to be necessary to give time to other workers to get the lock 
         time.sleep(self.t_refresh)
         
-        return element.reshape(self.item_shape)
+        return element
     
     def put(self, element: ArrayLike, block: Optional[bool] = True, timeout: Optional[float] = None) -> None:
         '''
@@ -335,10 +327,6 @@ class ModifiableRingBuffer(QueueLike):
         '''
 
         t_start = time.perf_counter_ns() * 1e-6
-
-        if np.asarray(element.shape) != self.item_shape:
-            self.item_shape = element.shape
-            self.allocate_items()
 
         if element.dtype != self.element_type:
             self.element_type = element.dtype
@@ -354,8 +342,8 @@ class ModifiableRingBuffer(QueueLike):
             buffer = np.frombuffer(
                 self.data, 
                 dtype = self.element_type, 
-                count = self.item_num_element,
-                offset = self.write_cursor.value * self.item_num_element * self.element_byte_size # offset should be in bytes
+                count = 1,
+                offset = self.write_cursor.value * self.element_byte_size # offset should be in bytes
             )
 
             # if the buffer is full, overwrite the next block
@@ -399,14 +387,13 @@ class ModifiableRingBuffer(QueueLike):
 
     def view_data(self):
         num_items = self.write_cursor.value - self.read_cursor.value
-        num_element_stored = self.item_num_element * num_items
 
         stored_data = np.frombuffer(                
             self.data, 
             dtype = self.element_type, 
-            count = num_element_stored,
-            offset = self.read_cursor.value * self.item_num_element * self.element_byte_size # offset should be in bytes
-        ).reshape(np.concatenate(((num_items,) , self.item_shape)))
+            count = num_items,
+            offset = self.read_cursor.value * self.element_byte_size # offset should be in bytes
+        ).reshape((num_items,))
 
         return stored_data
     
@@ -415,7 +402,6 @@ class ModifiableRingBuffer(QueueLike):
         reprstr = (
             f'capacity: {self.num_items}\n' +
             f'dead bytes: {self.dead_bytes}\n' +
-            f'item shape: {self.item_shape}\n' +
             f'data type: {self.element_type}\n' +
             f'size: {self.qsize()}\n' +
             f'read cursor position: {self.read_cursor.value}\n' + 
