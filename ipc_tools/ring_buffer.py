@@ -400,7 +400,7 @@ class ModifiableRingBuffer(QueueLike):
     def __str__(self):
         
         reprstr = (
-            f'capacity: {self.num_items}\n' +
+            f'capacity: {self.num_items - 1}\n' +
             f'dead bytes: {self.dead_bytes}\n' +
             f'data type: {self.element_type}\n' +
             f'size: {self.qsize()}\n' +
