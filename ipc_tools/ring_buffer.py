@@ -6,6 +6,8 @@ from numpy.typing import NDArray, ArrayLike, DTypeLike
 import time
 from queue import Empty
 from multiprocessing_logger import Logger
+import pickle
+import ctypes
 
 # TODO make a buffer that blocks instead of overflowing 
 
@@ -251,6 +253,8 @@ class ModifiableRingBuffer(QueueLike):
     - to send multiple fields with heterogeneous type, one can use numpy's structured arrays
     '''
 
+    DTYPE_ARRAY_LEN = 1000
+
     def __init__(
             self,
             num_bytes: int,
@@ -269,11 +273,16 @@ class ModifiableRingBuffer(QueueLike):
         if self.logger:
             self.local_logger = self.logger.get_logger(self.name)
 
+        # used to share the data
         self.lock = RLock()
         self.read_cursor = RawValue('I',0)
         self.write_cursor = RawValue('I',0)
         self.num_lost_item = RawValue('I',0)
-        self.data = RawArray('B', self.num_bytes) 
+        self.data = RawArray('B', self.num_bytes)
+
+        # this is used to share numpy dtype via pickling
+        self.dt_str = RawArray(ctypes.c_char, self.DTYPE_ARRAY_LEN) 
+        self.dt_len = RawValue('I',0)
         
         self.element_type = None
         self.element_byte_size = None
@@ -320,6 +329,12 @@ class ModifiableRingBuffer(QueueLike):
         
         t_start = time.perf_counter_ns() * 1e-6
 
+        # get dtype
+        datatype = pickle.loads(self.dt_str[0:self.dt_len.value])
+        if datatype != self.element_type:
+            self.element_type = element.dtype
+            self.allocate_items()
+
         with self.lock:
 
             t_lock_acquired = time.perf_counter_ns() * 1e-6
@@ -363,6 +378,14 @@ class ModifiableRingBuffer(QueueLike):
         t_start = time.perf_counter_ns() * 1e-6
 
         if element.dtype != self.element_type:
+
+            # share new dtype with other processes
+            dtypestr = pickle.dumps(element.dtype)
+            self.dt_len.value = len(dtypestr)
+            if self.dt_len.value > self.DTYPE_ARRAY_LEN:
+                raise RuntimeError('fixed array too small for dtype')
+            self.dt_str[0:self.dt_len.value] = dtypestr
+
             self.element_type = element.dtype
             self.allocate_items()
 
