@@ -454,7 +454,7 @@ class ModifiableRingBuffer(QueueLike):
             dtype = self.element_type, 
             count = num_items * self.item_shape_product,
             offset = self.read_cursor.value * self.item_shape_product * self.element_byte_size # offset should be in bytes
-        ).reshape(np.concatenate(((num_items,) , self.element_shape)))
+        ).reshape(np.concatenate(((num_items,) , self.element_shape), dtype=np.int64))
 
         return stored_data
     
@@ -471,6 +471,8 @@ class ModifiableRingBuffer(QueueLike):
             f'size: {self.qsize()}\n' +
             f'read cursor position: {self.read_cursor.value}\n' + 
             f'write cursor position: {self.write_cursor.value}\n' +
+            f'empty: {self.empty()}\n' +
+            f'full: {self.full()}\n' +
             f'lost item: {self.num_lost_item.value}\n' +
             f'buffer: {self.data}\n'
         )
