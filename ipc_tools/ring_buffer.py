@@ -1,4 +1,4 @@
-from multiprocessing import RawArray, RawValue, RLock, Process
+from multiprocessing import RawArray, RawValue, RLock
 from .queue_like import QueueLike
 from typing import Optional
 import numpy as np
@@ -219,7 +219,8 @@ class ModifiableRingBuffer(QueueLike):
     - to send multiple fields with heterogeneous type, one can use numpy's structured arrays
     '''
 
-    DTYPE_ARRAY_LEN = 1000
+    DTYPE_ARRAY_LEN = 1024
+    SHAPE_ARRAY_LEN = 128
 
     def __init__(
             self,
@@ -247,23 +248,69 @@ class ModifiableRingBuffer(QueueLike):
         self.data = RawArray('B', self.num_bytes)
 
         # this is used to share numpy dtype via pickling
-        self.dt_str = RawArray(ctypes.c_char, self.DTYPE_ARRAY_LEN) 
-        self.dt_len = RawValue('I',0)
-        
+        self.dtype_str_array = RawArray(ctypes.c_char, self.DTYPE_ARRAY_LEN) 
+        self.dtype_str_len = RawValue('I',0)
+
+        # share array shape
+        self.shape_array = RawArray('Q', self.SHAPE_ARRAY_LEN)
+        self.shape_array_len = RawValue('I',0)
+
         self.element_type = None
+        self.element_shape = None
         self.element_byte_size = None
         self.num_items = None
         self.dead_bytes = None
+        self.item_shape_product = None
 
-    def allocate_items(self):
+    def load_array_metadata(self):
+            
+        # get dtype
+        datatype = pickle.loads(self.dtype_str_array[0:self.dtype_str_len.value])
+        if datatype != self.element_type:
+            self.element_type = datatype
+
+        shape = np.asarray(self.shape_array[0:self.shape_array_len.value])
+        if not np.array_equal(shape, self.element_shape):
+            self.element_shape = shape
 
         self.element_byte_size = self.element_type.itemsize 
-        self.num_items = (self.num_bytes // self.element_byte_size)  
-        self.dead_bytes = self.num_bytes % self.element_byte_size
-        with self.lock:
-            self.read_cursor.value = 0
-            self.write_cursor.value = 0
-            self.num_lost_item.value = 0
+        self.item_shape_product = int(np.prod(self.element_shape))
+        self.num_items = self.num_bytes // (self.item_shape_product * self.element_byte_size)
+        self.dead_bytes = self.num_bytes % (self.item_shape_product * self.element_byte_size)
+    
+    def set_array_metadata(self, element):
+
+        modified = False
+
+        new_type = element.dtype
+        if new_type != self.element_type:
+            dtypestr = pickle.dumps(element.dtype)
+            self.dtype_str_len.value = len(dtypestr)
+            if self.dtype_str_len.value > self.DTYPE_ARRAY_LEN:
+                raise RuntimeError('fixed array too small for dtype')
+            self.dtype_str_array[0:self.dtype_str_len.value] = dtypestr
+            self.element_type = element.dtype
+            modified = True
+
+        new_shape = np.asarray(element.shape, dtype='Q')
+        if not np.array_equal(new_shape, self.element_shape):
+            new_shape = np.asarray(element.shape, dtype='Q')
+            self.shape_array_len.value = len(new_shape)
+            if self.shape_array_len.value > self.SHAPE_ARRAY_LEN:
+                raise RuntimeError('fixed array too small for shape')
+            self.shape_array[0:self.shape_array_len.value] = new_shape
+            self.element_shape = new_shape
+            modified = True
+
+        if modified:    
+            self.element_byte_size = self.element_type.itemsize 
+            self.item_shape_product = int(np.prod(self.element_shape))
+            self.num_items = self.num_bytes // (self.item_shape_product * self.element_byte_size)
+            self.dead_bytes = self.num_bytes % (self.item_shape_product * self.element_byte_size)
+            with self.lock:
+                self.read_cursor.value = 0
+                self.write_cursor.value = 0
+                self.num_lost_item.value = 0
         
     def get(self, block: bool = True, timeout: Optional[float] = None) -> Optional[NDArray]:
         '''return buffer to the current read location'''
@@ -299,13 +346,7 @@ class ModifiableRingBuffer(QueueLike):
 
             t_lock_acquired = time.perf_counter_ns() * 1e-6
 
-            # get dtype
-            datatype = pickle.loads(self.dt_str[0:self.dt_len.value])
-            if datatype != self.element_type:
-                self.element_type = datatype
-                self.element_byte_size = self.element_type.itemsize 
-                self.num_items = (self.num_bytes // self.element_byte_size)  
-                self.dead_bytes = self.num_bytes % self.element_byte_size
+            self.load_array_metadata()
 
             if self.empty():
                 raise Empty
@@ -315,15 +356,15 @@ class ModifiableRingBuffer(QueueLike):
                 element = np.frombuffer(
                     self.data, 
                     dtype = self.element_type, 
-                    count = 1,
-                    offset = self.read_cursor.value * self.element_byte_size # offset should be in bytes
+                    count = self.item_shape_product,
+                    offset = self.read_cursor.value * self.item_shape_product * self.element_byte_size # offset should be in bytes
                 ).copy()
             else:
                 element = np.frombuffer(
                     self.data, 
                     dtype = self.element_type, 
-                    count = 1,
-                    offset = self.read_cursor.value * self.element_byte_size # offset should be in bytes
+                    count = self.item_shape_product,
+                    offset = self.read_cursor.value * self.item_shape_product * self.element_byte_size # offset should be in bytes
                 )
             self.read_cursor.value = (self.read_cursor.value  +  1) % self.num_items
 
@@ -335,7 +376,7 @@ class ModifiableRingBuffer(QueueLike):
         # this seems to be necessary to give time to other workers to get the lock 
         time.sleep(self.t_refresh)
         
-        return element
+        return element.reshape(self.element_shape)
     
     def put(self, element: ArrayLike, block: Optional[bool] = True, timeout: Optional[float] = None) -> None:
         '''
@@ -350,17 +391,7 @@ class ModifiableRingBuffer(QueueLike):
 
             t_lock_acquired = time.perf_counter_ns() * 1e-6
 
-            if element.dtype != self.element_type:
-
-                # share new dtype with other processes
-                dtypestr = pickle.dumps(element.dtype)
-                self.dt_len.value = len(dtypestr)
-                if self.dt_len.value > self.DTYPE_ARRAY_LEN:
-                    raise RuntimeError('fixed array too small for dtype')
-                self.dt_str[0:self.dt_len.value] = dtypestr
-
-                self.element_type = element.dtype
-                self.allocate_items()
+            self.set_array_metadata(element)
 
             # convert to numpy array
             arr_element = np.asarray(element, dtype = self.element_type)
@@ -368,8 +399,8 @@ class ModifiableRingBuffer(QueueLike):
             buffer = np.frombuffer(
                 self.data, 
                 dtype = self.element_type, 
-                count = 1,
-                offset = self.write_cursor.value * self.element_byte_size # offset should be in bytes
+                count = self.item_shape_product,
+                offset = self.write_cursor.value * self.item_shape_product * self.element_byte_size # offset should be in bytes
             )
 
             # if the buffer is full, overwrite the next block
@@ -421,9 +452,9 @@ class ModifiableRingBuffer(QueueLike):
         stored_data = np.frombuffer(                
             self.data, 
             dtype = self.element_type, 
-            count = num_items,
-            offset = self.read_cursor.value * self.element_byte_size # offset should be in bytes
-        ).reshape((num_items,))
+            count = num_items * self.item_shape_product,
+            offset = self.read_cursor.value * self.item_shape_product * self.element_byte_size # offset should be in bytes
+        ).reshape(np.concatenate(((num_items,) , self.element_shape)))
 
         return stored_data
     
@@ -436,6 +467,7 @@ class ModifiableRingBuffer(QueueLike):
             f'capacity: {self.num_items - 1}\n' +
             f'dead bytes: {self.dead_bytes}\n' +
             f'data type: {self.element_type}\n' +
+            f'data shape: {self.element_shape}\n' +
             f'size: {self.qsize()}\n' +
             f'read cursor position: {self.read_cursor.value}\n' + 
             f'write cursor position: {self.write_cursor.value}\n' +
@@ -450,9 +482,10 @@ if __name__ == '__main__':
 
     import numpy as np
     import time
+    from multiprocessing import Process
 
     mrb = ModifiableRingBuffer(
-        num_bytes=512,
+        num_bytes=1024,
         logger = None,
         name = '',
         t_refresh=0.0001
@@ -466,7 +499,8 @@ if __name__ == '__main__':
         data = mrb.get()
         print(f'from child process: {(data,)}')
         time.sleep(1)
-        mrb.put(np.array([1.0], dtype=np.float128))
+        dt = np.dtype([('index', np.uint8, (1,)),('timestamp', np.float32, (1,)),('image', np.uint8, (16,16))])
+        mrb.put(np.array([(1, 0.1, np.zeros((16,16), dtype = np.uint8))], dtype=dt))
         
 
     p = Process(target=test, args=(mrb,))
@@ -474,7 +508,7 @@ if __name__ == '__main__':
     mrb.put(np.array([0], dtype=np.uint8))
     mrb.put(np.array([1], dtype=np.uint8))
     time.sleep(2)
-    mrb.put(np.array([0], dtype=np.uint16))
+    mrb.put(np.array([[0, 1, 2],[3, 4, 5]], dtype=np.uint16))
     p.join()
 
     data = mrb.get()
