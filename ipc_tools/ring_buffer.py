@@ -472,8 +472,7 @@ class ModifiableRingBuffer(QueueLike):
             f'read cursor position: {self.read_cursor.value}\n' + 
             f'write cursor position: {self.write_cursor.value}\n' +
             f'lost item: {self.num_lost_item.value}\n' +
-            f'buffer: {self.data}\n' + 
-            f'{self.view_data()}\n'
+            f'buffer: {self.data}\n'
         )
 
         return reprstr
@@ -500,9 +499,8 @@ if __name__ == '__main__':
         print(f'from child process: {(data,)}')
         time.sleep(1)
         dt = np.dtype([('index', np.uint8, (1,)),('timestamp', np.float32, (1,)),('image', np.uint8, (16,16))])
-        mrb.put(np.array([(1, 0.1, np.zeros((16,16), dtype = np.uint8))], dtype=dt))
+        mrb.put(np.array([(1, 0.1, np.ones((16,16), dtype = np.uint8))], dtype=dt))
         
-
     p = Process(target=test, args=(mrb,))
     p.start()
     mrb.put(np.array([0], dtype=np.uint8))
