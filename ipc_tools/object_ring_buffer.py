@@ -251,13 +251,21 @@ class ObjectRingBuffer3(ModifiableRingBuffer):
 if __name__ == '__main__':
 
     from multiprocessing import Process
+    import time
 
     # maybe put this into an object ---
-    dt = np.dtype([
+    dt0 = np.dtype([
         ('index', np.uint8, (1,)),
         ('timestamp', np.float32, (1,)),
         ('image', np.uint8, (16,16))
     ])
+
+    dt1 = np.dtype([
+        ('index', np.uint8, (1,)),
+        ('timestamp', np.float32, (1,)),
+        ('image', np.uint8, (24,24))
+    ])
+    
     shp = (1,)
 
     def serialize_image(buffer: NDArray, obj: Tuple[int, float, NDArray]) -> None:
@@ -274,19 +282,38 @@ if __name__ == '__main__':
     # ------
 
     orb = ObjectRingBuffer3(
-        num_bytes=1024,
+        num_bytes=2048,
         serialize=serialize_image,
         deserialize=deserialize_image,
         logger = None,
         name = '',
         t_refresh=0.0001
     )
-    orb.set_metadata(dtype=dt,shp=shp)
+    orb.set_metadata(dtype=dt0,shp=shp)
 
-    x = (
+    def test(orb):
+        time.sleep(1)
+        data = orb.get()
+        print(f'from child process: {(data,)}')
+        time.sleep(2)
+        orb.set_metadata(dtype=dt1,shp=shp)
+        x1 = (
+            5,
+            1.5,
+            np.ones((24,24), dtype=np.uint8)
+        )
+        orb.put(x1)
+    
+    p = Process(target=test, args=(orb,))
+    p.start()
+    x0 = (
         10,
         0.01,
         np.ones((16,16), dtype=np.uint8)
     )
-    orb.put(x)
-    y = orb.get()
+    orb.put(x0)
+    p.join()
+
+    data = orb.get()
+    print(f'from main process: {(data,)}')
+    
