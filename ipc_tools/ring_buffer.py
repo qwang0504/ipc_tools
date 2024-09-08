@@ -342,6 +342,9 @@ class ModifiableRingBuffer(QueueLike):
         
         t_start = time.perf_counter_ns() * 1e-6
 
+        if self.dtype_str_len.value == 0:
+            return None
+
         with self.lock:
 
             t_lock_acquired = time.perf_counter_ns() * 1e-6
