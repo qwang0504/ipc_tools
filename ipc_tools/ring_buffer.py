@@ -219,7 +219,7 @@ class ModifiableRingBuffer(QueueLike):
     - to send multiple fields with heterogeneous type, one can use numpy's structured arrays
     '''
 
-    DTYPE_ARRAY_LEN = 1024
+    DTYPE_ARRAY_LEN = 1024*1024
     SHAPE_ARRAY_LEN = 128
 
     def __init__(
