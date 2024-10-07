@@ -266,20 +266,22 @@ class ModifiableRingBuffer(QueueLike):
         self.item_shape_product = None
 
     def load_array_metadata(self):
+        
+        if self.dtype_str_len.value > 0:
             
-        # get dtype
-        datatype = pickle.loads(self.dtype_str_array[0:self.dtype_str_len.value])
-        if datatype != self.element_type:
-            self.element_type = datatype
+            # get dtype
+            datatype = pickle.loads(self.dtype_str_array[0:self.dtype_str_len.value])
+            if datatype != self.element_type:
+                self.element_type = datatype
 
-        shape = np.asarray(self.shape_array[0:self.shape_array_len.value])
-        if not np.array_equal(shape, self.element_shape):
-            self.element_shape = shape
+            shape = np.asarray(self.shape_array[0:self.shape_array_len.value])
+            if not np.array_equal(shape, self.element_shape):
+                self.element_shape = shape
 
-        self.element_byte_size = self.element_type.itemsize 
-        self.item_shape_product = int(np.prod(self.element_shape))
-        self.num_items = self.num_bytes // (self.item_shape_product * self.element_byte_size)
-        self.dead_bytes = self.num_bytes % (self.item_shape_product * self.element_byte_size)
+            self.element_byte_size = self.element_type.itemsize 
+            self.item_shape_product = int(np.prod(self.element_shape))
+            self.num_items = self.num_bytes // (self.item_shape_product * self.element_byte_size)
+            self.dead_bytes = self.num_bytes % (self.item_shape_product * self.element_byte_size)
     
     def set_array_metadata(self, element):
 
