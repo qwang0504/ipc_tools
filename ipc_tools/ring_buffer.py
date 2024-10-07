@@ -427,7 +427,8 @@ class ModifiableRingBuffer(QueueLike):
 
     def full(self):
         ''' check if buffer is full '''
-        return self.write_cursor.value == ((self.read_cursor.value - 1) % self.num_items)
+        if self.num_items is not None:
+            return self.write_cursor.value == ((self.read_cursor.value - 1) % self.num_items)
 
     def empty(self):
         ''' check if buffer is empty '''
