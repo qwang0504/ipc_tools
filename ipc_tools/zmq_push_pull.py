@@ -61,6 +61,9 @@ class ZMQ_PushPull(QueueLike):
     def clear(self) -> None:
         pass
 
+    def get_num_items(self) -> int:
+        pass
+
 class ZMQ_PushPullArray(ZMQ_PushPull, QueueLike):
 
     def __init__(

@@ -79,7 +79,9 @@ class ObjectRingBuffer(QueueLike):
     def clear(self) -> None:
         self.queue.clear()
 
-
+    def get_num_items(self) -> int:
+        return self.num_items
+    
 class ObjectRingBuffer2(RingBuffer):
 
     def __init__(

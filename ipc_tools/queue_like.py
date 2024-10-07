@@ -57,6 +57,10 @@ class QueueLike(ABC):
     def cancel_join_thread(self) -> None:
         pass
 
+    @abstractmethod
+    def get_num_items(self) -> int:
+        pass
+
 class QueueMP(Queue, QueueLike):
 
     def __init__(self, *args, **kwargs) -> None:

@@ -170,6 +170,9 @@ class PriorityQueue(QueueLike):
         '''clear the buffer'''
         self.priority = RawArray('I', [PRIORITY_EMPTY for i in range(self.num_items)])
 
+    def get_num_items(self) -> int:
+        return self.num_items
+    
     def view_data(self):
 
         stored_data = np.array([])
@@ -370,6 +373,9 @@ class PriorityQueueHeap(QueueLike):
         for tup in zip(initial_priorities, locations):
             self.priority.push(tup)
 
+    def get_num_items(self) -> int:
+        return self.num_items
+    
     def view_data(self):
         stored_data = np.array([])
         priorities = self.priority.get_tuple_elements(0)

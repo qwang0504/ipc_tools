@@ -26,6 +26,9 @@ class MonitoredQueue(QueueLike):
         self.freq_in = Value('d',0)
         self.freq_out = Value('d',0)
 
+    def get_num_items(self) -> int:
+        return self.queue.get_num_items()
+
     def qsize(self) -> int:
         return self.queue.qsize()
 

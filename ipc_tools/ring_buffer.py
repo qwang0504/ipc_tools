@@ -180,6 +180,9 @@ class RingBuffer(QueueLike):
         with self.lock:
             self.write_cursor.value = self.read_cursor.value
 
+    def get_num_items(self) -> int:
+        return self.num_items
+    
     def view_data(self):
         num_items = self.write_cursor.value - self.read_cursor.value
         num_element_stored = self.item_num_element * num_items
@@ -442,6 +445,9 @@ class ModifiableRingBuffer(QueueLike):
         with self.lock:
             self.write_cursor.value = self.read_cursor.value
 
+    def get_num_items(self) -> Optional[int]:
+        return self.num_items
+    
     def view_data(self):
 
         if self.element_byte_size is None:

@@ -177,6 +177,9 @@ class MultiRingBuffer(QueueLike):
     def close(self):
         pass
 
+    def get_num_items(self) -> int:
+        return self.num_items
+
     def view_data(self):
         
         num_items = self.write_cursor.value - self.read_cursor.value
