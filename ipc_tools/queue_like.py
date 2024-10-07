@@ -58,7 +58,7 @@ class QueueLike(ABC):
         pass
 
     @abstractmethod
-    def get_num_items(self) -> int:
+    def get_num_items(self) -> Optional[int]:
         pass
 
 class QueueMP(Queue, QueueLike):
@@ -73,3 +73,5 @@ class QueueMP(Queue, QueueLike):
         except Empty:
             pass
 
+    def get_num_items(self) -> Optional[int]:
+        return None
