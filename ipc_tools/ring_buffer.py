@@ -435,7 +435,8 @@ class ModifiableRingBuffer(QueueLike):
 
     def qsize(self):
         ''' Return number of items currently stored in the buffer '''
-        return (self.write_cursor.value - self.read_cursor.value) % self.num_items
+        if self.num_items is not None:
+            return (self.write_cursor.value - self.read_cursor.value) % self.num_items
     
     def close(self):
         pass
