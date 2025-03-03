@@ -171,39 +171,106 @@ from queue import Empty
     
 
 
-### Pipes and Queues
+### Queues
 
-def consumer(queue, t_refresh):
-    print('Consumer running...')
-    while True:
-        try:
-            index, item = queue.get(block=False)
-        except Empty:
-            print('Queue is empty, waiting for a while')
-            time.sleep(t_refresh)
-            continue
-        if item is None: 
-            break 
-        print(f'Consumer got item number {index}: {item}')
-    print('Consumer finished')
+# def consumer(queue, t_refresh):
+#     print('Consumer running...')
+#     while True:
+#         try:
+#             index, item = queue.get(block=False)
+#         except Empty:
+#             print('Queue is empty, waiting for a while')
+#             time.sleep(t_refresh)
+#             continue
+#         if item is None: 
+#             break 
+#         print(f'Consumer got item number {index}: {item}')
+#     print('Consumer finished')
     
 
-def producer(queue):
-    for i in range(10):
-        value = random.random()
-        time.sleep(value)
-        queue.put((i, value))
-    queue.put((i+1, None))
-    print('Producer finished')
+# def producer(queue):
+#     for i in range(10):
+#         value = random.random()
+#         time.sleep(value)
+#         queue.put((i, value))
+#     queue.put((i+1, None))
+#     print('Producer finished')
+
+
+# if __name__ == '__main__':
+#     queue = Queue()
+#     consumer_process = Process(target=consumer, args=(queue, 0.1))
+#     producer_process = Process(target=producer, args=(queue,))
+
+#     consumer_process.start()
+#     producer_process.start()
+
+#     consumer_process.join()
+#     producer_process.join()
+
+
+
+### Pipes 
+
+## conn1, conn2 = Pipe() --> conn1 is only receiving 
+
+# def sender(connection):
+#     print("Sender started")
+#     for i in range(10):
+#         value = random.random()
+#         time.sleep(value)
+#         connection.send(value)
+#     connection.send(None)
+#     print('Sender complete')
+    
+# def receiver(connection):
+#     print("Receiver running")
+#     while True:
+#         item = connection.recv()
+#         print(f"Receiver got {item}")
+#         if item == None:
+#             break
+#     print("Receiver complete")
+
+
+## Pipe(duplex=True) is bidirectional
+
+def generate_value(connection, value):
+    new_value = random.random()    
+    time.sleep(new_value)
+    value = value + new_value 
+    print(f"Sending {value}")
+    connection.send(value)
+    
+def pingpong(connection, send_first):
+    if send_first:
+        generate_value(connection, 0)
+    while True: 
+        value = connection.recv()
+        print(f'Received {value}')
+        generate_value(connection, value)
+        if value > 10:
+            break 
+    print("Process complete")
 
 
 if __name__ == '__main__':
-    queue = Queue()
-    consumer_process = Process(target=consumer, args=(queue, 0.1))
-    producer_process = Process(target=producer, args=(queue,))
+    # conn1, conn2 = Pipe() 
+    # sender_process = Process(target=sender, args=(conn2,))
+    # receiver_process = Process(target=receiver, args=(conn1,))
 
-    consumer_process.start()
-    producer_process.start()
+    # receiver_process.start()
+    # sender_process.start()
 
-    consumer_process.join()
-    producer_process.join()
+    # receiver_process.join()
+    # sender_process.join()
+
+    conn1, conn2 = Pipe(duplex=True)
+    p1 = Process(target=pingpong, args=(conn1, True))
+    p2 = Process(target=pingpong, args=(conn2, False))
+
+    p1.start()
+    p2.start()
+
+    p1.join()
+    p2.join()
